@@ -13,18 +13,28 @@
  * See the License for the specific language governing permissions and 
  * limitations under the License. 
  */
-package alesia.tools
+package alesia.tools.bdd
 
-import org.junit.runner.RunWith
-import alesia.tools.output.TestResultAggregator
-import org.junit.runners.Suite.SuiteClasses
-import alesia.tools.math.TestShannonEntropy
-import alesia.tools.math.TestJensenShannonDivergence
-import alesia.tools.bdd.TestBDDNode
+import org.junit.Test
+import org.junit.Assert._
 
-/** Bundles all tests together.
- *  @author Roland Ewald
+/** Tests for basic entities of binary decision diagrams. 
+ * @author Roland Ewald
  */
-@RunWith(value = classOf[org.junit.runners.Suite])
-@SuiteClasses(value = Array(classOf[TestBDDNode], classOf[TestResultAggregator], classOf[TestShannonEntropy], classOf[TestJensenShannonDivergence]))
-class AllTests
+@Test
+class TestBDDNode {
+  
+  @Test
+  def testSimpleBDDConstructionAndEvaluation() {    
+    import BinaryDecisionNode._
+    //The constants:
+    assertFalse(evaluate(FalseNode, Array()))
+    assertTrue(evaluate(TrueNode, Array()))
+    
+    //The function f(x) = x
+    val testDiagram = BDDNode(0,FalseNode,TrueNode)
+    assertTrue(evaluate(testDiagram, Array(true)))
+    assertFalse(evaluate(testDiagram, Array(false)))
+  }
+
+}
