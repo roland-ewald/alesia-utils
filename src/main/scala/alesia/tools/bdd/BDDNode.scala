@@ -55,7 +55,7 @@ sealed case class Instruction(val variable: Int, val lIndex: Int, val rIndex: In
 /** Helper methods. */
 object BinaryDecisionNode {
   def asInstructions(node: BinaryDecisionNode): Array[Instruction] = {
-    null
+    throw new UnsupportedOperationException //TODO
   }
   
   /** Evaluate node for given input. */
