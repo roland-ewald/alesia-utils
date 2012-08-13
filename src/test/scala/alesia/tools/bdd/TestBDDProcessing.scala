@@ -25,9 +25,12 @@ import org.junit.Assert._
 @Test
 class TestBDDProcessing {
 
+  import BDDProcessing._
+
   @Test
   def testSolutionCounter() = {
-    assertEquals(4, BDDProcessing.countSolutions(TestBDDNode.median3))
+    assertEquals(1, countSolutions(TestBDDNode.id))
+    assertEquals(4, countSolutions(TestBDDNode.median3))
   }
 
 }

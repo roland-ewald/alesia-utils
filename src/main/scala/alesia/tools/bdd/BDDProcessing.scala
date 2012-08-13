@@ -51,26 +51,20 @@ object BDDProcessing {
    */
   def countSolutions(bdd: Array[BranchInstruction]): Int = {
     require(bdd.size > 1, "A valid BDD consists of at least two branch instructions, but there are only " + bdd.size + " present.")
+
+    //Contains number of solutions (ones) for the bead corresponding to the branch instruction with the same index
     val counter = new Array[Int](bdd.size)
 
-    // Step C2
-    def computeCK(k: Int) = {
-      val l = bdd(k).lowIndex
-      val h = bdd(k).highIndex
-      counter(l) + counter(h)
-    }
+    //Computes the number of combinations between the index of a node and the given node with variable index v_k
+    def combinations(idx: Int, v_k: Int) = counter(idx) * (1 << (bdd(idx).variable - v_k - 1)) 
 
-    // Step C1
+    //C1
     counter(1) = 1
     for (k <- 2 until bdd.size) {
-      counter(k) = computeCK(k)
+      val v = bdd(k).variable
+      counter(k) = combinations(bdd(k).lowIndex, v) + combinations(bdd(k).highIndex, v) //C2
     }
-    2 ^ (bdd.last.variable - 1) * counter.last
+    combinations(bdd.size - 1, -1)
   }
 
-  def countVariables(bdd: BinaryDecisionNode) = 0
-
-  /*bdd match {
-//    case FalseN
-  }*/
 }
