@@ -48,7 +48,7 @@ class TestBDDNode {
 
   @Test
   def conversionToInstructions() {
-    val instructions = asInstructions(id)
+    val instructions: Array[BranchInstruction] = id
     assertEquals(3, instructions.size)
     assertEquals(FalseNode.variable, instructions(0).variable)
     assertEquals(TrueNode.variable, instructions(1).variable)
@@ -59,8 +59,24 @@ class TestBDDNode {
 
   @Test
   def instructionEvaluation() {
-    assertTrue(evaluate(asInstructions(median3), Array(true, false, true)))
-    assertFalse(evaluate(asInstructions(median3), Array(false, false, true)))
+    checkMedian3(median3)
+  }
+
+  @Test
+  def testConversionBranchInstructionsBDD() = {
+    checkMedian3(asBinaryDecisionNode(asInstructions(median3)))
+  }
+
+  /** Checks whether truth table corresponds to median-3 function. */
+  def checkMedian3(instr: Array[BranchInstruction]) = {
+    assertFalse(evaluate(instr, Array(false, false, false)))
+    assertFalse(evaluate(instr, Array(false, false, true)))
+    assertFalse(evaluate(instr, Array(false, true, false)))
+    assertTrue(evaluate(instr, Array(false, true, true)))
+    assertFalse(evaluate(instr, Array(true, false, false)))
+    assertTrue(evaluate(instr, Array(true, false, true)))
+    assertTrue(evaluate(instr, Array(true, true, false)))
+    assertTrue(evaluate(instr, Array(true, true, true)))
   }
 
 }

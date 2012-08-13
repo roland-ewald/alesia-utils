@@ -58,11 +58,11 @@ object TrueNodeInstruction extends BranchInstruction(TrueNode.variable, 1, 1)
 /** Branch instruction to represent the FalseNode. */
 object FalseNodeInstruction extends BranchInstruction(FalseNode.variable, 0, 0)
 
-/** Helper methods. */
+/** Conversion from/to a set of branch instructions. */
 object BinaryDecisionNode {
 
-  /** Convert binary decision diagram to array of instructions. */
-  def asInstructions(node: BinaryDecisionNode): Array[BranchInstruction] = {
+  /** Convert binary decision diagram to array of branch instructions. */
+  implicit def asInstructions(node: BinaryDecisionNode): Array[BranchInstruction] = {
 
     //Basic map to store the instructions for each node, I_0 and I_1 are added by default
     val nodeMap = scala.collection.mutable.Map[BinaryDecisionNode, (Int, BranchInstruction)](
@@ -89,6 +89,19 @@ object BinaryDecisionNode {
 
     fillNodeMap(node)
     nodeMap.toList.sortBy(_._2._1).map(_._2._2).toArray
+  }
+
+  /** Convert array of branch instructions to binary decision diagram. */
+  implicit def asBinaryDecisionNode(instructions: Array[BranchInstruction]): BinaryDecisionNode = {
+    val nodeMap = scala.collection.mutable.Map[Int, BinaryDecisionNode](0 -> FalseNode, 1 -> TrueNode)
+    instructions.zipWithIndex.foreach(tuple =>
+      {
+        val (inst, idx) = tuple
+        if (!nodeMap.contains(idx)) {
+          nodeMap += (idx -> BDDNode(inst.variable, nodeMap(inst.lowIndex), nodeMap(inst.highIndex)))
+        }
+      })
+    nodeMap(instructions.size - 1)
   }
 
 }

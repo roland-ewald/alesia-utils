@@ -48,5 +48,11 @@ object BDDProcessing {
     }
   }
 
-  /**Algorithm 7.1.4.C. */
+  /** Count BDD solutions (input variable combinations for which f(x_1, ..., x_n) = true).
+   *  Corresponds to algorithm 7.1.4.C (p. 75, TAOCP - see above).
+   */
+  def countSolutions(bdd: Array[BranchInstruction]): Int = {
+
+    0
+  }
 }
