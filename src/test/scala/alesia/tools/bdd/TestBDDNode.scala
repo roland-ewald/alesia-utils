@@ -19,6 +19,7 @@ import org.junit.Test
 import org.junit.Assert._
 
 import BinaryDecisionNode._
+import BDDProcessing._
 
 /** Tests for basic entities of binary decision diagrams.
  *  @author Roland Ewald
