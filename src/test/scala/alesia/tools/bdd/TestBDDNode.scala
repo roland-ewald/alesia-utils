@@ -18,6 +18,8 @@ package alesia.tools.bdd
 import org.junit.Test
 import org.junit.Assert._
 
+import BinaryDecisionNode._
+
 /** Tests for basic entities of binary decision diagrams.
  *  @author Roland Ewald
  */
@@ -27,13 +29,17 @@ class TestBDDNode {
   /** The identity function, f(x) = x. */
   val id = BDDNode(0, FalseNode, TrueNode)
 
+  /** The median function for three boolean variables. From Knuth's TAOCP, vol.4-1, p. 71.*/
+  val median3 = {
+    val node3 = BDDNode(2, FalseNode, TrueNode)
+    BDDNode(0, BDDNode(1, FalseNode, node3), BDDNode(1, node3, TrueNode))
+  }
+
   @Test
   def simpleBDDConstructionAndEvaluation() {
-    import BinaryDecisionNode._
-
     //The constants:
-    assertFalse(evaluate(FalseNode, Array()))
-    assertTrue(evaluate(TrueNode, Array()))
+    assertFalse(evaluate(FalseNode, Array[Boolean]()))
+    assertTrue(evaluate(TrueNode, Array[Boolean]()))
 
     assertTrue(evaluate(id, Array(true)))
     assertFalse(evaluate(id, Array(false)))
@@ -41,11 +47,19 @@ class TestBDDNode {
 
   @Test
   def conversionToInstructions() {
-    val instructions = BinaryDecisionNode.asInstructions(id)
+    val instructions = asInstructions(id)
     assertEquals(3, instructions.size)
-    assertEquals(-1, instructions(0).variable)
-    assertEquals(-1, instructions(1).variable)
+    assertEquals(FalseNode.variable, instructions(0).variable)
+    assertEquals(TrueNode.variable, instructions(1).variable)
     assertEquals(0, instructions(2).variable)
+
+    assertEquals(6, asInstructions(median3).size)
+  }
+
+  @Test
+  def instructionEvaluation() {
+    assertTrue(evaluate(asInstructions(median3), Array(true, false, true)))
+    assertFalse(evaluate(asInstructions(median3), Array(false, false, true)))
   }
 
 }

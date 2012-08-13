@@ -44,13 +44,13 @@ object TrueNode extends BinaryDecisionNode {
 
 /** Leaf, represents the constant 'false'. */
 object FalseNode extends BinaryDecisionNode {
-  val variable = -1
+  val variable = -2
   val low = FalseNode
   val high = FalseNode
 }
 
 /** Instruction to represent a node in a BDD. */
-sealed case class Instruction(val variable: Int, val lIndex: Int, val rIndex: Int)
+sealed case class Instruction(val variable: Int, val lowIndex: Int, val highIndex: Int)
 
 /** Helper methods. */
 object BinaryDecisionNode {
@@ -59,7 +59,8 @@ object BinaryDecisionNode {
   def asInstructions(node: BinaryDecisionNode): Array[Instruction] = {
 
     //Basic map to store the instructions for each node, I_0 and I_1 are added by default
-    val nodeMap = scala.collection.mutable.Map[BinaryDecisionNode, (Int, Instruction)](FalseNode -> (0, Instruction(-1, 0, 0)), TrueNode -> (1, Instruction(-1, 1, 1)))
+    val nodeMap = scala.collection.mutable.Map[BinaryDecisionNode, (Int, Instruction)](
+      FalseNode -> (0, Instruction(FalseNode.variable, 0, 0)), TrueNode -> (1, Instruction(TrueNode.variable, 1, 1)))
 
     /** Fills the instruction map with the entry for the given BDD node.
      *  @return the index of the instruction
@@ -79,7 +80,7 @@ object BinaryDecisionNode {
       case FalseNode => 0
       case TrueNode => 1
     }
-    
+
     fillNodeMap(node)
     nodeMap.toList.sortBy(_._2._1).map(_._2._2).toArray
   }
@@ -90,5 +91,18 @@ object BinaryDecisionNode {
     case node: BDDNode => if (input(node.variable)) evaluate(node.high, input) else evaluate(node.low, input)
     case TrueNode => return true
     case FalseNode => return false
+  }
+
+  /** Evaluate an instruction array for a given input. */
+  def evaluate(instructions: Array[Instruction], input: Array[Boolean]): Boolean = evaluate(instructions, input, instructions.size - 1)
+
+  @tailrec
+  private[this] def evaluate(instructions: Array[Instruction], input: Array[Boolean], currentIndex: Int): Boolean = {
+    val inst = instructions(currentIndex)
+    inst.variable match {
+      case TrueNode.variable => true
+      case FalseNode.variable => false
+      case x => if (input(x)) evaluate(instructions, input, inst.highIndex) else evaluate(instructions, input, inst.lowIndex)
+    }
   }
 }
