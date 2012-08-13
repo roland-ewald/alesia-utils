@@ -28,9 +28,14 @@ class TestBDDProcessing {
   import BDDProcessing._
 
   @Test
-  def testSolutionCounter() = {
+  def solutionCounting() {
     assertEquals(1, countSolutions(TestBDDNode.id))
     assertEquals(4, countSolutions(TestBDDNode.median3))
+  }
+  
+  @Test
+  def reduction() {
+    reduce(TestBDDNode.median3)
   }
 
 }

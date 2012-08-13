@@ -50,13 +50,13 @@ object BDDProcessing {
    *  Corresponds to algorithm 7.1.4.C (p. 75, TAOCP - see above).
    */
   def countSolutions(bdd: Array[BranchInstruction]): Int = {
-    require(bdd.size > 1, "A valid BDD consists of at least two branch instructions, but there are only " + bdd.size + " present.")
+    checkBDDDimension(bdd.size)
 
     //Contains number of solutions (ones) for the bead corresponding to the branch instruction with the same index
     val counter = new Array[Int](bdd.size)
 
     //Computes the number of combinations between the index of a node and the given node with variable index v_k
-    def combinations(idx: Int, v_k: Int) = counter(idx) * (1 << (bdd(idx).variable - v_k - 1)) 
+    def combinations(idx: Int, v_k: Int) = counter(idx) * (1 << (bdd(idx).variable - v_k - 1))
 
     //C1
     counter(1) = 1
@@ -64,7 +64,23 @@ object BDDProcessing {
       val v = bdd(k).variable
       counter(k) = combinations(bdd(k).lowIndex, v) + combinations(bdd(k).highIndex, v) //C2
     }
-    combinations(bdd.size - 1, -1)
+
+    combinations(bdd.size - 1, -1) // Second arg needs to be -1 because variable indices start with 0
   }
 
+  /** Reduce BDD if necessary. It is assumed the BDD is already ordered,
+   *  i.e. children of a node related to v_i may only be related to variables v_{i+1}, ..., v_n.
+   */
+  def reduce(bdd: Array[BranchInstruction]): BinaryDecisionNode = {
+    checkBDDDimension(bdd.size)
+    val rootIdx = bdd.size - 1
+    val aux = new Array[Int](bdd.size)
+    val head = new Array[Int](bdd(0).variable - 1) // false & true node have variable index v_{n+1}
+
+    FalseNode
+  }
+
+  /** Checks dimension of BDD.*/
+  private[this] def checkBDDDimension(size: Int) =
+    require(size > 1, "A valid BDD consists of at least two branch instructions, but there are only " + size + " present.")
 }
