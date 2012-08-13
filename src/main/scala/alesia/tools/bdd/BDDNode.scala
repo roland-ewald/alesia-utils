@@ -50,17 +50,17 @@ object FalseNode extends BinaryDecisionNode {
 }
 
 /** Instruction to represent a node in a BDD. */
-sealed case class Instruction(val variable: Int, val lowIndex: Int, val highIndex: Int)
+sealed case class BranchInstruction(val variable: Int, val lowIndex: Int, val highIndex: Int)
 
 /** Helper methods. */
 object BinaryDecisionNode {
 
   /** Convert binary decision diagram to array of instructions. */
-  def asInstructions(node: BinaryDecisionNode): Array[Instruction] = {
+  def asInstructions(node: BinaryDecisionNode): Array[BranchInstruction] = {
 
     //Basic map to store the instructions for each node, I_0 and I_1 are added by default
-    val nodeMap = scala.collection.mutable.Map[BinaryDecisionNode, (Int, Instruction)](
-      FalseNode -> (0, Instruction(FalseNode.variable, 0, 0)), TrueNode -> (1, Instruction(TrueNode.variable, 1, 1)))
+    val nodeMap = scala.collection.mutable.Map[BinaryDecisionNode, (Int, BranchInstruction)](
+      FalseNode -> (0, BranchInstruction(FalseNode.variable, 0, 0)), TrueNode -> (1, BranchInstruction(TrueNode.variable, 1, 1)))
 
     /** Fills the instruction map with the entry for the given BDD node.
      *  @return the index of the instruction
@@ -73,7 +73,7 @@ object BinaryDecisionNode {
           val lowNodeIdx = fillNodeMap(node.low)
           val highNodeIdx = fillNodeMap(node.high)
           val nodeIdx = nodeMap.size
-          nodeMap += (node -> (nodeIdx, Instruction(node.variable, lowNodeIdx, highNodeIdx)))
+          nodeMap += (node -> (nodeIdx, BranchInstruction(node.variable, lowNodeIdx, highNodeIdx)))
           nodeIdx
         }
       }
@@ -94,10 +94,10 @@ object BinaryDecisionNode {
   }
 
   /** Evaluate an instruction array for a given input. */
-  def evaluate(instructions: Array[Instruction], input: Array[Boolean]): Boolean = evaluate(instructions, input, instructions.size - 1)
+  def evaluate(instructions: Array[BranchInstruction], input: Array[Boolean]): Boolean = evaluate(instructions, input, instructions.size - 1)
 
   @tailrec
-  private[this] def evaluate(instructions: Array[Instruction], input: Array[Boolean], currentIndex: Int): Boolean = {
+  private[this] def evaluate(instructions: Array[BranchInstruction], input: Array[Boolean], currentIndex: Int): Boolean = {
     val inst = instructions(currentIndex)
     inst.variable match {
       case TrueNode.variable => true
