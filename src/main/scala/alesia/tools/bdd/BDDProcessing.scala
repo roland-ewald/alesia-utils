@@ -37,6 +37,7 @@ object BDDProcessing {
 
   /** Evaluate an instruction array for a given input. */
   def evaluate(instructions: Array[BranchInstruction], input: Array[Boolean]): Boolean = {
+    checkBDDDimension(instructions.size)
     @tailrec
     def evaluate(instructions: Array[BranchInstruction], input: Array[Boolean], currentIndex: Int): Boolean = instructions(currentIndex) match {
       case i: BranchInstr => if (input(i.variable)) evaluate(instructions, input, i.highIndex) else evaluate(instructions, input, i.lowIndex)
@@ -65,17 +66,110 @@ object BDDProcessing {
       counter(k) = combinations(bdd(k).lowIndex, v) + combinations(bdd(k).highIndex, v) //C2
     }
 
-    combinations(bdd.size - 1, -1) // Second arg needs to be -1 because variable indices start with 0
+    combinations(bdd.size - 1, -1) // Second argument needs to be -1 because variable indices start with 0
   }
 
   /** Reduce BDD if necessary. It is assumed the BDD is already ordered,
    *  i.e. children of a node related to v_i may only be related to variables v_{i+1}, ..., v_n.
+   *  Corresponds to algorithm 7.1.4.R (p. 85, TAOCP - see above).
    */
   def reduce(bdd: Array[BranchInstruction]): BinaryDecisionNode = {
     checkBDDDimension(bdd.size)
-    val rootIdx = bdd.size - 1
+
+    val v_max = bdd(0).variable - 1 // false & true node have variable index v_{n+1}
+    val root = bdd.size - 1
     val aux = new Array[Int](bdd.size)
-    val head = new Array[Int](bdd(0).variable - 1) // false & true node have variable index v_{n+1}
+    val head = new Array[Int](v_max + 1)
+    for (v <- bdd(root).variable to v_max)
+      head(v) = -1
+    val low = for (i <- bdd) yield i.lowIndex
+    val variable = for (i <- bdd) yield i.variable
+    val high = for (i <- bdd) yield i.highIndex
+    val avail = scala.collection.mutable.Stack[Int]()
+
+    //R1 - Initialization
+
+    aux(0) = -1
+    aux(1) = -1
+    aux(root) = -1
+
+    var s = root
+    while (s != 0) {
+      val p = s
+      s = ~aux(p)
+      aux(p) = head(variable(p))
+      head(variable(p)) = ~p
+      if (aux(low(p)) >= 0) {
+        aux(low(p)) = ~s
+        s = low(p)
+      }
+      if (aux(high(p)) >= 0) {
+        aux(high(p)) = ~s
+        s = high(p)
+      }
+    }
+
+    //R2 - Loop on v
+    aux(0) = 0
+    aux(1) = 0
+    val v = v_max
+
+    //R3 - Bucket sort
+    var p = ~head(v)
+    s = 0
+    while (p != 0) {
+      val p2 = ~aux(p)
+      var q = high(p)
+      if (low(q) < 0) {
+        high(p) = ~low(q)
+      }
+      q = low(p)
+      if (low(q) < 0) {
+        low(p) = ~low(q)
+        q = low(p)
+      }
+      if (q == high(p)) {
+        low(p) = ~q
+      }
+      if (q == high(p)) {
+        low(p) = ~q
+        high(p) = avail.pop
+        aux(p) = 0
+        avail.push(p)
+      } else if (aux(q) >= 0) {
+        aux(p) = s
+        s = ~q
+        aux(q) = ~p
+      } else {
+        aux(p) = aux(~aux(q))
+        aux(~aux(q)) = p
+      }
+      p = p2
+    }
+
+    //R4 - Clean up
+    var r = ~s
+    s = 0
+    while (r >= 0) {
+      var q = ~aux(r)
+      aux(r) = 0
+      if (s == 0) {
+        s = q
+      } else {
+        aux(p) = q
+      }
+      p = q
+      while (aux(p) > 0)
+        p = aux(p)
+      r = ~aux(p)
+    }
+
+    //R5, ..., R9
+    p = s
+    
+    println(avail)
+    println(aux.mkString(","))
+    println(head.mkString(","))
 
     FalseNode
   }
