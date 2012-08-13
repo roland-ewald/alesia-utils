@@ -36,16 +36,14 @@ object BDDProcessing {
   }
 
   /** Evaluate an instruction array for a given input. */
-  def evaluate(instructions: Array[BranchInstruction], input: Array[Boolean]): Boolean = evaluate(instructions, input, instructions.size - 1)
-
-  @tailrec
-  private[this] def evaluate(instructions: Array[BranchInstruction], input: Array[Boolean], currentIndex: Int): Boolean = {
-    val inst = instructions(currentIndex)
-    inst.variable match {
-      case TrueNode.variable => true
-      case FalseNode.variable => false
-      case x => if (input(x)) evaluate(instructions, input, inst.highIndex) else evaluate(instructions, input, inst.lowIndex)
+  def evaluate(instructions: Array[BranchInstruction], input: Array[Boolean]): Boolean = {
+    @tailrec
+    def evaluate(instructions: Array[BranchInstruction], input: Array[Boolean], currentIndex: Int): Boolean = instructions(currentIndex) match {
+      case i: BranchInstr => if (input(i.variable)) evaluate(instructions, input, i.highIndex) else evaluate(instructions, input, i.lowIndex)
+      case t: TrueNodeInstruction => true
+      case f: FalseNodeInstruction => false
     }
+    evaluate(instructions, input, instructions.size - 1)
   }
 
   /** Count BDD solutions (input variable combinations for which f(x_1, ..., x_n) = true).
@@ -69,4 +67,10 @@ object BDDProcessing {
     }
     2 ^ (bdd.last.variable - 1) * counter.last
   }
+
+  def countVariables(bdd: BinaryDecisionNode) = 0
+
+  /*bdd match {
+//    case FalseN
+  }*/
 }

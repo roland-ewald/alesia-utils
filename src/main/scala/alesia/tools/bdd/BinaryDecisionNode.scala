@@ -44,19 +44,36 @@ object TrueNode extends BinaryDecisionNode {
 
 /** Leaf, represents the constant 'false'. */
 object FalseNode extends BinaryDecisionNode {
-  val variable = -2
+  val variable = -1
   val low = FalseNode
   val high = FalseNode
 }
 
 /** Branch instruction to represent a node in a BDD. */
-sealed case class BranchInstruction(val variable: Int, val lowIndex: Int, val highIndex: Int)
+sealed trait BranchInstruction {
+  val variable: Int
+  val lowIndex: Int
+  val highIndex: Int
+}
 
-/** Branch instruction to represent the TrueNode. */
-object TrueNodeInstruction extends BranchInstruction(TrueNode.variable, 1, 1)
+/** A common branch instruction. */
+case class BranchInstr(val variable: Int, val lowIndex: Int, val highIndex: Int) extends BranchInstruction
 
-/** Branch instruction to represent the FalseNode. */
-object FalseNodeInstruction extends BranchInstruction(FalseNode.variable, 0, 0)
+/** Branch instruction to represent the TrueNode.
+ *  @param variable non-existing variable index (n+1, with n being the maximal index)
+ */
+case class TrueNodeInstruction(val variable: Int) extends BranchInstruction {
+  val lowIndex = 1
+  val highIndex = 1
+}
+
+/** Branch instruction to represent the FalseNode.
+ *  @param variable non-existing variable index (n+1, with n being the maximal index)
+ */
+case class FalseNodeInstruction(val variable: Int) extends BranchInstruction {
+  val lowIndex = 0
+  val highIndex = 0
+}
 
 /** Conversion from/to a set of branch instructions. */
 object BinaryDecisionNode {
@@ -66,7 +83,10 @@ object BinaryDecisionNode {
 
     //Basic map to store the instructions for each node, I_0 and I_1 are added by default
     val nodeMap = scala.collection.mutable.Map[BinaryDecisionNode, (Int, BranchInstruction)](
-      FalseNode -> (0, FalseNodeInstruction), TrueNode -> (1, TrueNodeInstruction))
+      FalseNode -> (0, FalseNodeInstruction(-1)), TrueNode -> (1, TrueNodeInstruction(-1)))
+
+    //Stores the largest variable index that has been encountered
+    var maxVariableIndex = 0
 
     /** Fills the instruction map with the entry for the given BDD node.
      *  @return the index of the instruction
@@ -74,12 +94,13 @@ object BinaryDecisionNode {
     def fillNodeMap(node: BinaryDecisionNode): Int = node match {
       case node: BDDNode => {
         val nodeEntry = nodeMap.get(node)
+        maxVariableIndex = scala.math.max(maxVariableIndex, node.variable)
         if (nodeEntry.isDefined) nodeEntry.get._1
         else {
           val lowNodeIdx = fillNodeMap(node.low)
           val highNodeIdx = fillNodeMap(node.high)
           val nodeIdx = nodeMap.size
-          nodeMap += (node -> (nodeIdx, BranchInstruction(node.variable, lowNodeIdx, highNodeIdx)))
+          nodeMap += (node -> (nodeIdx, BranchInstr(node.variable, lowNodeIdx, highNodeIdx)))
           nodeIdx
         }
       }
@@ -88,6 +109,12 @@ object BinaryDecisionNode {
     }
 
     fillNodeMap(node)
+
+    //Update instructions representing the constant functions with variable index n+1
+    val varIdxConstants = maxVariableIndex + 1
+    nodeMap(FalseNode) = (0, FalseNodeInstruction(varIdxConstants))
+    nodeMap(TrueNode) = (1, TrueNodeInstruction(varIdxConstants))
+
     nodeMap.toList.sortBy(_._2._1).map(_._2._2).toArray
   }
 

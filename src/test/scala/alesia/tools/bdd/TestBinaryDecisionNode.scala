@@ -43,8 +43,8 @@ class TestBDDNode {
   def conversionToInstructions() {
     val instructions: Array[BranchInstruction] = id
     assertEquals(3, instructions.size)
-    assertEquals(FalseNode.variable, instructions(0).variable)
-    assertEquals(TrueNode.variable, instructions(1).variable)
+    assertEquals(1, instructions(0).variable)
+    assertEquals(1, instructions(1).variable)
     assertEquals(0, instructions(2).variable)
 
     assertEquals(6, asInstructions(median3).size)
