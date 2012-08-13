@@ -52,7 +52,7 @@ object BDDProcessing {
    *  Corresponds to algorithm 7.1.4.C (p. 75, TAOCP - see above).
    */
   def countSolutions(bdd: Array[BranchInstruction]): Int = {
-
+    val counter = Array[Int](bdd.size)
     0
   }
 }

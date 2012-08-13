@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and 
  * limitations under the License. 
  */
-package alesia.tools
+package alesia.tools.bdd
 
-import org.junit.runner.RunWith
-import alesia.tools.output.TestResultAggregator
-import org.junit.runners.Suite.SuiteClasses
-import alesia.tools.math.TestShannonEntropy
-import alesia.tools.math.TestJensenShannonDivergence
-import alesia.tools.bdd.TestBDDNode
-import alesia.tools.bdd.TestBDDProcessing
+import org.junit.Test
+import org.junit.Assert._
 
-/** Bundles all tests together.
+/** Tests the algorithms to manage and process binary decision diagrams.
+ *
  *  @author Roland Ewald
  */
-@RunWith(value = classOf[org.junit.runners.Suite])
-@SuiteClasses(value = Array(classOf[TestBDDProcessing], classOf[TestBDDNode], classOf[TestResultAggregator], classOf[TestShannonEntropy], classOf[TestJensenShannonDivergence]))
-class AllTests
+@Test
+class TestBDDProcessing {
+
+  @Test
+  def testSolutionCounter() = {
+    assertEquals(4, BDDProcessing.countSolutions(TestBDDNode.median3))
+  }
+
+}

@@ -27,15 +27,8 @@ import BDDProcessing._
 @Test
 class TestBDDNode {
 
-  /** The identity function, f(x) = x. */
-  val id = BDDNode(0, FalseNode, TrueNode)
-
-  /** The median function for three boolean variables. From Knuth's TAOCP, vol.4-1, p. 71.*/
-  val median3 = {
-    val node3 = BDDNode(2, FalseNode, TrueNode)
-    BDDNode(0, BDDNode(1, FalseNode, node3), BDDNode(1, node3, TrueNode))
-  }
-
+  import TestBDDNode._
+  
   @Test
   def simpleBDDConstructionAndEvaluation() {
     //The constants:
@@ -79,4 +72,15 @@ class TestBDDNode {
     assertTrue(evaluate(instr, Array(true, true, true)))
   }
 
+}
+
+object TestBDDNode {
+  /** The identity function, f(x) = x. */
+  val id = BDDNode(0, FalseNode, TrueNode)
+
+  /** The median function for three boolean variables. From Knuth's TAOCP, vol.4-1, p. 71.*/
+  val median3 = {
+    val node3 = BDDNode(2, FalseNode, TrueNode)
+    BDDNode(0, BDDNode(1, FalseNode, node3), BDDNode(1, node3, TrueNode))
+  }
 }
