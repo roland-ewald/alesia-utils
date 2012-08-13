@@ -52,7 +52,21 @@ object BDDProcessing {
    *  Corresponds to algorithm 7.1.4.C (p. 75, TAOCP - see above).
    */
   def countSolutions(bdd: Array[BranchInstruction]): Int = {
-    val counter = Array[Int](bdd.size)
-    0
+    require(bdd.size > 1, "A valid BDD consists of at least two branch instructions, but there are only " + bdd.size + " present.")
+    val counter = new Array[Int](bdd.size)
+
+    // Step C2
+    def computeCK(k: Int) = {
+      val l = bdd(k).lowIndex
+      val h = bdd(k).highIndex
+      counter(l) + counter(h)
+    }
+
+    // Step C1
+    counter(1) = 1
+    for (k <- 2 until bdd.size) {
+      counter(k) = computeCK(k)
+    }
+    2 ^ (bdd.last.variable - 1) * counter.last
   }
 }
