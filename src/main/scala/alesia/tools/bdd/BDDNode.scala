@@ -54,15 +54,41 @@ sealed case class Instruction(val variable: Int, val lIndex: Int, val rIndex: In
 
 /** Helper methods. */
 object BinaryDecisionNode {
+
+  /** Convert binary decision diagram to array of instructions. */
   def asInstructions(node: BinaryDecisionNode): Array[Instruction] = {
-    throw new UnsupportedOperationException //TODO
+
+    //Basic map to store the instructions for each node, I_0 and I_1 are added by default
+    val nodeMap = scala.collection.mutable.Map[BinaryDecisionNode, (Int, Instruction)](FalseNode -> (0, Instruction(-1, 0, 0)), TrueNode -> (1, Instruction(-1, 1, 1)))
+
+    /** Fills the instruction map with the entry for the given BDD node.
+     *  @return the index of the instruction
+     */
+    def fillNodeMap(node: BinaryDecisionNode): Int = node match {
+      case node: BDDNode => {
+        val nodeEntry = nodeMap.get(node)
+        if (nodeEntry.isDefined) nodeEntry.get._1
+        else {
+          val lowNodeIdx = fillNodeMap(node.low)
+          val highNodeIdx = fillNodeMap(node.high)
+          val nodeIdx = nodeMap.size
+          nodeMap += (node -> (nodeIdx, Instruction(node.variable, lowNodeIdx, highNodeIdx)))
+          nodeIdx
+        }
+      }
+      case FalseNode => 0
+      case TrueNode => 1
+    }
+    
+    fillNodeMap(node)
+    nodeMap.toList.sortBy(_._2._1).map(_._2._2).toArray
   }
-  
+
   /** Evaluate node for given input. */
   @tailrec
   def evaluate(node: BinaryDecisionNode, input: Array[Boolean]): Boolean = node match {
+    case node: BDDNode => if (input(node.variable)) evaluate(node.high, input) else evaluate(node.low, input)
     case TrueNode => return true
     case FalseNode => return false
-    case node: BDDNode => if (input(node.variable)) evaluate(node.high, input) else evaluate(node.low, input)
   }
 }

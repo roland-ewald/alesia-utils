@@ -18,23 +18,34 @@ package alesia.tools.bdd
 import org.junit.Test
 import org.junit.Assert._
 
-/** Tests for basic entities of binary decision diagrams. 
- * @author Roland Ewald
+/** Tests for basic entities of binary decision diagrams.
+ *  @author Roland Ewald
  */
 @Test
 class TestBDDNode {
-  
+
+  /** The identity function, f(x) = x. */
+  val id = BDDNode(0, FalseNode, TrueNode)
+
   @Test
-  def testSimpleBDDConstructionAndEvaluation() {    
+  def simpleBDDConstructionAndEvaluation() {
     import BinaryDecisionNode._
+
     //The constants:
     assertFalse(evaluate(FalseNode, Array()))
     assertTrue(evaluate(TrueNode, Array()))
-    
-    //The function f(x) = x
-    val testDiagram = BDDNode(0,FalseNode,TrueNode)
-    assertTrue(evaluate(testDiagram, Array(true)))
-    assertFalse(evaluate(testDiagram, Array(false)))
+
+    assertTrue(evaluate(id, Array(true)))
+    assertFalse(evaluate(id, Array(false)))
+  }
+
+  @Test
+  def conversionToInstructions() {
+    val instructions = BinaryDecisionNode.asInstructions(id)
+    assertEquals(3, instructions.size)
+    assertEquals(-1, instructions(0).variable)
+    assertEquals(-1, instructions(1).variable)
+    assertEquals(0, instructions(2).variable)
   }
 
 }
