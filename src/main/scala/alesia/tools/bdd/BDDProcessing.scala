@@ -76,8 +76,12 @@ object BDDProcessing {
   def reduce(bdd: Array[BranchInstruction]): BinaryDecisionNode = {
     checkBDDDimension(bdd.size)
 
+    var root = bdd.size - 1
+    var p = 0
+    var q = 0
+    var r = 0
+
     val v_max = bdd(0).variable - 1 // false & true node have variable index v_{n+1}
-    val root = bdd.size - 1
     val aux = new Array[Int](bdd.size)
     val head = new Array[Int](v_max + 1)
     for (v <- bdd(root).variable to v_max)
@@ -95,7 +99,7 @@ object BDDProcessing {
 
     var s = root
     while (s != 0) {
-      val p = s
+      p = s
       s = ~aux(p)
       aux(p) = head(variable(p))
       head(variable(p)) = ~p
@@ -112,61 +116,128 @@ object BDDProcessing {
     //R2 - Loop on v
     aux(0) = 0
     aux(1) = 0
-    val v = v_max
+    var v = v_max
 
     //R3 - Bucket sort
-    var p = ~head(v)
-    s = 0
-    while (p != 0) {
-      val p2 = ~aux(p)
-      var q = high(p)
-      if (low(q) < 0) {
-        high(p) = ~low(q)
-      }
-      q = low(p)
-      if (low(q) < 0) {
-        low(p) = ~low(q)
+    def bucketSort() = {
+      p = ~head(v)
+      s = 0
+      while (p != 0) {
+        val p2 = ~aux(p)
+        q = high(p)
+        if (low(q) < 0) {
+          high(p) = ~low(q)
+        }
         q = low(p)
+        if (low(q) < 0) {
+          low(p) = ~low(q)
+          q = low(p)
+        }
+        if (q == high(p)) {
+          low(p) = ~q
+        }
+        if (q == high(p)) {
+          low(p) = ~q
+          high(p) = avail.pop
+          aux(p) = 0
+          avail.push(p)
+        } else if (aux(q) >= 0) {
+          aux(p) = s
+          s = ~q
+          aux(q) = ~p
+        } else {
+          aux(p) = aux(~aux(q))
+          aux(~aux(q)) = p
+        }
+        p = p2
       }
-      if (q == high(p)) {
-        low(p) = ~q
-      }
-      if (q == high(p)) {
-        low(p) = ~q
-        high(p) = avail.pop
-        aux(p) = 0
-        avail.push(p)
-      } else if (aux(q) >= 0) {
-        aux(p) = s
-        s = ~q
-        aux(q) = ~p
-      } else {
-        aux(p) = aux(~aux(q))
-        aux(~aux(q)) = p
-      }
-      p = p2
     }
 
     //R4 - Clean up
-    var r = ~s
-    s = 0
-    while (r >= 0) {
-      var q = ~aux(r)
-      aux(r) = 0
-      if (s == 0) {
-        s = q
-      } else {
-        aux(p) = q
+    def cleanUp() = {
+      r = ~s
+      s = 0
+      while (r >= 0) {
+        q = ~aux(r)
+        aux(r) = 0
+        if (s == 0) {
+          s = q
+        } else {
+          aux(p) = q
+        }
+        p = q
+        while (aux(p) > 0)
+          p = aux(p)
+        r = ~aux(p)
       }
-      p = q
-      while (aux(p) > 0)
-        p = aux(p)
-      r = ~aux(p)
     }
 
-    //R5, ..., R9
-    p = s
-    
+    //R2
+    var outerLoopOK = false
+    while (!outerLoopOK) {
+      bucketSort()
+      cleanUp()
+      //R5
+      p = s
+      var innerLoopOK = false
+      if (p == 0) {
+        //TODO: R9
+      } else q = p
+      while (!innerLoopOK) {
+        //R6
+        s = low(p) //here, p == q (?)
+
+        //R7
+        removeDuplicates()
+        while (q != 0 && low(q) == s)
+          removeDuplicates()
+
+        //R8
+        cleanUp2()
+        while (p != q)
+          cleanUp2()
+
+        //TODO: R9
+      }
+    }
+
+    //R8 (partial)
+    def cleanUp2() {
+      if (low(p) >= 0) {
+        aux(high(p)) = 0
+      }
+      p = aux(p)
+    }
+
+    //R7 (partial)
+    def removeDuplicates() {
+      r = high(q)
+      if (aux(r) >= 0) {
+        aux(r) = ~q
+      } else {
+        low(q) = aux(r)
+        high(q) = avail.pop
+        avail.push(q)
+      }
+      q = aux(q)
+    }
+
+    //R9
+    //0: done, 1: return to R6, 2: return to R3 
+    def checkDone(): Int = {
+      if (p != 0)
+        1
+      else if (v > variable(root)) {
+        v = v - 1
+        2
+      } else {
+        if (low(root) < 0) {
+          root = ~low(root)
+        }
+        0
+      }
+    }
+
     println(avail)
     println(aux.mkString(","))
     println(head.mkString(","))
