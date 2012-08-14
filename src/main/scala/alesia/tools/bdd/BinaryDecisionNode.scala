@@ -16,6 +16,7 @@
 package alesia.tools.bdd
 
 import scala.annotation.tailrec
+import scala.collection.mutable.ListBuffer
 
 /** Basic types to represent a binary decision diagrams (BDDs).
  *  Correspond to entities discussed in D. E. Knuth's "The Art of Computer Programming", vol. 4,
@@ -82,40 +83,29 @@ object BinaryDecisionNode {
   implicit def asInstructions(node: BinaryDecisionNode): Array[BranchInstruction] = {
 
     //Basic map to store the instructions for each node, I_0 and I_1 are added by default
-    val nodeMap = scala.collection.mutable.Map[BinaryDecisionNode, (Int, BranchInstruction)](
-      FalseNode -> (0, FalseNodeInstruction(-1)), TrueNode -> (1, TrueNodeInstruction(-1)))
+    val instructions = ListBuffer[BranchInstruction]()
 
-    //Stores the largest variable index that has been encountered
+    //Stores the largest variable index that has been encountered (to compute v_{n+1} for false/true instructions)
     var maxVariableIndex = 0
 
     /** Fills the instruction map with the entry for the given BDD node.
      *  @return the index of the instruction
      */
-    def fillNodeMap(node: BinaryDecisionNode): Int = node match {
+    def addInstructions(node: BinaryDecisionNode): Int = node match {
       case node: BDDNode => {
-        val nodeEntry = nodeMap.get(node)
         maxVariableIndex = scala.math.max(maxVariableIndex, node.variable)
-        if (nodeEntry.isDefined) nodeEntry.get._1
-        else {
-          val lowNodeIdx = fillNodeMap(node.low)
-          val highNodeIdx = fillNodeMap(node.high)
-          val nodeIdx = nodeMap.size
-          nodeMap += (node -> (nodeIdx, BranchInstr(node.variable, lowNodeIdx, highNodeIdx)))
-          nodeIdx
-        }
+        val lowNodeIdx = addInstructions(node.low)
+        val highNodeIdx = addInstructions(node.high)
+        val nodeIdx = instructions.size + 2 //plus two default instructions at the end
+        instructions += BranchInstr(node.variable, lowNodeIdx, highNodeIdx)
+        nodeIdx
       }
       case FalseNode => 0
       case TrueNode => 1
     }
 
-    fillNodeMap(node)
-
-    //Update instructions representing the constant functions with variable index n+1
-    val varIdxConstants = maxVariableIndex + 1
-    nodeMap(FalseNode) = (0, FalseNodeInstruction(varIdxConstants))
-    nodeMap(TrueNode) = (1, TrueNodeInstruction(varIdxConstants))
-
-    nodeMap.toList.sortBy(_._2._1).map(_._2._2).toArray
+    addInstructions(node)
+    (List(FalseNodeInstruction(maxVariableIndex + 1), TrueNodeInstruction(maxVariableIndex + 1)) ::: instructions.toList).toArray
   }
 
   /** Convert array of branch instructions to binary decision diagram. */

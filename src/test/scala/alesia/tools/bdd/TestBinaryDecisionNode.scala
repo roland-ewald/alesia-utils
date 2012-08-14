@@ -41,13 +41,28 @@ class TestBinaryDecisionNode {
 
   @Test
   def conversionToInstructions() {
+    checkInstructions(id)
+    checkInstructions(median3)
+    checkInstructions(median3unreduced)
     val instructions: Array[BranchInstruction] = id
     assertEquals(3, instructions.size)
     assertEquals(1, instructions(0).variable)
     assertEquals(1, instructions(1).variable)
     assertEquals(0, instructions(2).variable)
+    assertEquals(7, asInstructions(median3).size)
+  }
 
-    assertEquals(6, asInstructions(median3).size)
+  /** Checks whether branch instructions invariants hold. See TAOCP, vol. 4-1, eq. 7.1.4-(9), p. 75.*/
+  def checkInstructions(instr: Array[BranchInstruction]) {
+    println(instr.zipWithIndex.mkString(","))
+    assertTrue(instr.size > 2)
+    for (k <- (instr.size - 1) to 2) { // I_0 and I_1 are special (false & true)
+      val v_k = instr(k).variable
+      val l_k = instr(k).lowIndex
+      val h_k = instr(k).highIndex
+      assertTrue(l_k < k && h_k < k) //indices decrease
+      assertTrue(instr(l_k).variable > v_k && instr(h_k).variable > v_k) //variable indices increase
+    }
   }
 
   @Test
