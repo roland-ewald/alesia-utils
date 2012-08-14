@@ -73,6 +73,8 @@ object BDDProcessing {
   /** Reduce BDD if necessary. It is assumed the BDD is already ordered,
    *  i.e. children of a node related to v_i may only be related to variables v_{i+1}, ..., v_n.
    *  Corresponds to algorithm 7.1.4.R (p. 85, TAOCP - see above).
+   *
+   *  The algorithm is pretty tricky an involves a lot of pointer arithmetic on linked lists.
    */
   def reduce(bdd: Array[BranchInstruction]): Array[BranchInstruction] = {
     checkBDDDimension(bdd.size)
@@ -102,7 +104,7 @@ object BDDProcessing {
     val variable = for (i <- bdd) yield i.variable
     val high = for (i <- bdd) yield i.highIndex
 
-    // Stack for deleted nodes
+    // Top of stack for deleted nodes
     var avail = -1
 
     /** Initializes the algorithm by doing a depth-first search with bit-wise tricks in the aux array (step R1 in TAOCP).
@@ -215,29 +217,28 @@ object BDDProcessing {
       }
     }
 
-    //R7 (partial)
+    /** Removes duplicate nodes. R7 in TAOCP (except for the loop, which is realized in the main algorithm). */
     def removeDuplicates() {
       r = high(q)
       if (aux(r) >= 0) {
         aux(r) = ~q
       } else {
         low(q) = aux(r)
-        high(q) = avail
-        avail = q
+        high(q) = avail //add node q to stack of duplicates, by letting its high-field point to the current top of the stack...
+        avail = q //...and setting the new top to q
       }
-      q = aux(q)
+      q = aux(q) //go to next node
     }
 
-    //R8 (partial)
+    /** Cleans up after duplicates have been removed. R8 in TAOCP (except for the loop, which is realized in the main algorithm) */
     def cleanUpAfterDuplicateRemoval() {
-      if (low(p) >= 0) {
+      if (low(p) >= 0) { //reset auxiliary data in case node p has not been marked as deleted
         aux(high(p)) = 0
       }
-      p = aux(p)
+      p = aux(p) //go to next node
     }
 
-    //R9
-    //0: done, 1: return to R6, 2: return to R3 
+    /** Checks whether algorithm is done. R9 in TAOCP (return code is used in main loop to achieve same behavior as the GOTOs).*/
     def checkDone(): Int = {
       if (p != 0)
         0
@@ -252,14 +253,24 @@ object BDDProcessing {
       }
     }
 
-    init() //R1
+    /** Create BDD from arrays. After the algorithm is finished, the negative fields in the low array correspond to deleted nodes,
+     *  their complement points at the equivalent non-deleted node. As the pointer structure has been updated accordingly as well,
+     *  we can also just walk through the tree recursively, as is done below.
+     */
+    def createReducedBDD(idx: Int): BinaryDecisionNode = idx match {
+      case 0 => FalseNode
+      case 1 => TrueNode
+      case n => BDDNode(variable(n), createReducedBDD(low(n)), createReducedBDD(high(n)))
+    }
 
+    //Main algorithm:
+
+    init() //R1
     //R2 - Loop on v    
     aux(0) = 0
     aux(1) = 0
     var loopDecision = 0 //Represents the jump-logic (in absence of GOTOs... :)
     while (v >= 0 && loopDecision != -1) {
-
       loopDecision = 0
 
       //R3+R4
@@ -273,29 +284,18 @@ object BDDProcessing {
         q = p
 
       while (loopDecision == 0) {
-        //R6
-        s = low(p) //here, p == q
-
-        //R7
-        removeDuplicates()
-        while (q != 0 && low(q) == s)
+        s = low(p) //R6 - examine a bucket
+        removeDuplicates() //R7
+        while (q != 0 && low(q) == s) //
           removeDuplicates()
-
-        //R8
-        cleanUpAfterDuplicateRemoval()
+        cleanUpAfterDuplicateRemoval() //R8
         while (p != q)
           cleanUpAfterDuplicateRemoval()
-
         loopDecision = checkDone() // R9
       }
     }
 
-    /** Create BDD from result. */
-    def createReducedBDD(idx: Int): BinaryDecisionNode = idx match {
-      case 0 => FalseNode
-      case 1 => TrueNode
-      case n => BDDNode(variable(n), createReducedBDD(low(n)), createReducedBDD(high(n)))
-    }
+    //Create BDD starting from root node
     createReducedBDD(bdd.size - 1)
   }
 
