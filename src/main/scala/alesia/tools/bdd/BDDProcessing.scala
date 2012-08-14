@@ -163,7 +163,7 @@ object BDDProcessing {
       }
     }
 
-    /** Do a bucket sort (step R3 in TAOCP).
+    /** Do a bucket sort. R3 in TAOCP.
      */
     def bucketSort() = {
       p = ~head(v) //get index of first linked list element containing all nodes that refer to variable v
@@ -179,10 +179,10 @@ object BDDProcessing {
           low(p) = ~low(q)
           q = low(p)
         }
-        if (q == high(p)) { //check whether one of the previous if-clauses was true - if not...
-          low(p) = ~q //set low(p) to its complement
-          high(p) = avail //TODO: bug???
-          aux(p) = 0
+        if (q == high(p)) { //if none of the previous if-clauses was true, delete node
+          low(p) = ~q //store the index complement of the duplicated non-deleted node
+          aux(p) = 0 //remove auxiliary data
+          high(p) = avail //push p into the stack 
           avail = p
         } else if (aux(q) >= 0) { //the node is already reduced
           aux(p) = s
@@ -222,15 +222,17 @@ object BDDProcessing {
       r = high(q)
       if (aux(r) >= 0) {
         aux(r) = ~q
-      } else {
-        low(q) = aux(r)
-        high(q) = avail //add node q to stack of duplicates, by letting its high-field point to the current top of the stack...
-        avail = q //...and setting the new top to q
+      } else { //node q is a duplicate 
+        low(q) = aux(r) //store index complement of duplicate non-deleted node
+        high(q) = avail //push q into the stack
+        avail = q
       }
       q = aux(q) //go to next node
     }
 
-    /** Cleans up after duplicates have been removed. R8 in TAOCP (except for the loop, which is realized in the main algorithm) */
+    /** Cleans up after duplicates have been removed, sets the auxiliary data of these nodes to 0.
+     *  R8 in TAOCP (except for the loop, which is realized in the main algorithm).
+     */
     def cleanUpAfterDuplicateRemoval() {
       if (low(p) >= 0) { //reset auxiliary data in case node p has not been marked as deleted
         aux(high(p)) = 0
