@@ -163,32 +163,32 @@ object BDDProcessing {
       }
     }
 
-    /** Do a bucket sort. R3 in TAOCP.
-     */
+    /** Do a bucket sort. This links together all nodes with the same low-index but differing high-indices (those were both are identical are removed as
+     * duplicates). The lists start at ~aux(x), where x is the low-index being equal. R3 in TAOCP. */
     def bucketSort() = {
       p = ~head(v) //get index of first linked list element containing all nodes that refer to variable v
-      s = 0
+      s = 0 //index complement of previous element (i.e. 0 is -1 is Nil)
       while (p != 0) {
         val p2 = ~aux(p) //get pointer to next element in list, store in auxiliary variable
-        q = high(p) //get high-branch index of current node
-        if (low(q) < 0) {
+        q = high(p) //get high-branch node of current node
+        if (low(q) < 0) { //if high-branch node has already been deleted, let high-branch of current node point to the non-deleted duplicate node (stored as complement in low array)  
           high(p) = ~low(q)
         }
-        q = low(p)
-        if (low(q) < 0) {
+        q = low(p) //get low-branch node of current node
+        if (low(q) < 0) { //if low-branch node has already been deleted, let low-branch of current node point to the non-deleted duplicate node (stored as complement in low array)
           low(p) = ~low(q)
           q = low(p)
         }
-        if (q == high(p)) { //if none of the previous if-clauses was true, delete node
+        if (q == high(p)) { //if low(p) == high(p), this node is obsolete and can be deleted
           low(p) = ~q //store the index complement of the duplicated non-deleted node
           aux(p) = 0 //remove auxiliary data
           high(p) = avail //push p into the stack 
           avail = p
-        } else if (aux(q) >= 0) { //the node is already reduced
+        } else if (aux(q) >= 0) { //if q already points to a list, add p to this linked list 
           aux(p) = s
           s = ~q
-          aux(q) = ~p
-        } else {
+          aux(q) = ~p 
+        } else { // if q is negative, copy the aux information of the node it points to and set pointer to this node
           aux(p) = aux(~aux(q))
           aux(~aux(q)) = p
         }
