@@ -16,6 +16,7 @@
 package alesia.tools.bdd
 
 import scala.annotation.tailrec
+import scala.collection.mutable.ArrayBuffer
 
 /** Implementation of algorithms for managing, processing, and creating binary decision diagrams.
  *
@@ -73,58 +74,101 @@ object BDDProcessing {
    *  i.e. children of a node related to v_i may only be related to variables v_{i+1}, ..., v_n.
    *  Corresponds to algorithm 7.1.4.R (p. 85, TAOCP - see above).
    */
-  def reduce(bdd: Array[BranchInstruction]): BinaryDecisionNode = {
+  def reduce(bdd: Array[BranchInstruction]): Array[BranchInstruction] = {
     checkBDDDimension(bdd.size)
 
-    var root = bdd.size - 1
-    var p = 0
-    var q = 0
-    var r = 0
+    // Maximal variable index (false & true node have variable index v_{n+1})
+    val v_max = bdd(0).variable - 1
 
-    val v_max = bdd(0).variable - 1 // false & true node have variable index v_{n+1}
+    // Current variable (of which the nodes shall be reduced) 
+    var v = v_max //index of current node
+
+    // Current root of the sub-tree to be reduced
+    var root = bdd.size - 1
+
+    // Auxiliary variables
+    var p, q, r, s = 0
+
+    // Auxiliary data per branch instruction
     val aux = new Array[Int](bdd.size)
+
+    // Auxiliary data to list all nodes that refer to the same variable:
     val head = new Array[Int](v_max + 1)
     for (v <- bdd(root).variable to v_max)
       head(v) = -1
+
+    // Index-based access to l_k, v_k, and h_k of the I_k
     val low = for (i <- bdd) yield i.lowIndex
     val variable = for (i <- bdd) yield i.variable
     val high = for (i <- bdd) yield i.highIndex
-    val avail = scala.collection.mutable.Stack[Int]()
 
-    //R1 - Initialization
+    // Stack for deleted nodes
+    var avail = -1
 
-    aux(0) = -1
-    aux(1) = -1
-    aux(root) = -1
+    /** Initializes the algorithm by doing a depth-first search with bit-wise tricks in the aux array (step R1 in TAOCP).
+     *  The high branches are searched first, with a pointer to the remaining low-index node to be visited stored in the auxiliary data
+     *  (basically that's all pointer arithmetic on linked lists).
+     *
+     *  The method uses the bitwise complement (~0 = -1, ~1=-2, ~~x=x) etc. to (re)store pointers.
+     *
+     *  During the visit to all reachable nodes, linked lists of nodes that all
+     *  query the same variable are generated, pointers to the start node indices are stored (again, as complements) in the head array.
+     *
+     *  Example for unreduced median3 function (see TAOCP, vol. 4-1, p. 71, eq. 7.1.4-(2)):
+     *
+     *  Before:
+     *  root = 8
+     *  low:  [0, 1, 0, 0, 2, 0, 1, 5, 4]
+     *  var:  [3, 3, 2, 2, 1, 2, 2, 1, 0]
+     *  high: [0, 1, 0, 1, 3, 1, 1, 6, 7]
+     *  aux:  [-1, -1, 0, 0, 0, 0, 0, 0, -1]
+     *  head: [-1, -1, -1]
+     *
+     *  After:
+     *  low:  [0, 1, 0, 0, 2, 0, 1, 5, 4]
+     *  var:  [3, 3, 2, 2, 1, 2, 2, 1, 0]
+     *  high: [0, 1, 0, 1, 3, 1, 1, 6, 7]
+     *  aux:  [-1, -1, -4, -6, -8, -7, -1, -1, -1]
+     *  head: [-9, -5, -3]
+     *
+     *  Low, var, high remain unchanged.  Head contains the pointers to the start nodes of the linked lists for each variable, e.g. for
+     *  the third variable it contains '-3', so that the first node that queries this variable has index ~(-3) = 2. The aux array for the
+     *  variable with index 2 contains '-4', so the second element in that list is the node with index ~(-4) = 3, and so on. All nodes with
+     *  aux = 0 could not be reached at all.
+     */
+    def init() = {
 
-    var s = root
-    while (s != 0) {
-      p = s
-      s = ~aux(p)
-      aux(p) = head(variable(p))
-      head(variable(p)) = ~p
-      if (aux(low(p)) >= 0) {
-        aux(low(p)) = ~s
-        s = low(p)
-      }
-      if (aux(high(p)) >= 0) {
-        aux(high(p)) = ~s
-        s = high(p)
+      // Mark root and bottom nodes as visited
+      aux(0) = -1
+      aux(1) = -1
+      aux(root) = -1
+
+      // Start from root
+      s = root
+      while (s != 0) {
+        p = s //p is the current node
+        s = ~aux(p) //contains pointer to previous node (or zero, in first iteration and if root node is reached again)
+        aux(p) = head(variable(p)) //store pointer to next element in node list (-1 denotes Nil)
+        head(variable(p)) = ~p //put in pointer to this element as first element in list
+        if (aux(low(p)) >= 0) { //check if low branch has been visited
+          aux(low(p)) = ~s //store previous node on aux storage for next node (as negative number)
+          s = low(p) //go to this node
+        }
+        if (aux(high(p)) >= 0) { //check if high branch has been visited
+          aux(high(p)) = ~s //store 'previous' (could be low(p)) node on aux storage for next node (as negative number)
+          s = high(p) //go to this node
+        }
       }
     }
 
-    //R2 - Loop on v
-    aux(0) = 0
-    aux(1) = 0
-    var v = v_max
-
-    //R3 - Bucket sort
+    /** Do a bucket sort (step R3 in TAOCP).
+     */
     def bucketSort() = {
-      p = ~head(v)
+      p = ~head(v) //get index of first linked list element containing all nodes that refer to variable v
       s = 0
       while (p != 0) {
-        val p2 = ~aux(p)
-        q = high(p)
+        val p2 = ~aux(p) //get pointer to next element in list, store in auxiliary variable
+        q = high(p) //get high-branch index of current node
         if (low(q) < 0) {
           high(p) = ~low(q)
         }
@@ -133,15 +177,12 @@ object BDDProcessing {
           low(p) = ~low(q)
           q = low(p)
         }
-        if (q == high(p)) {
-          low(p) = ~q
-        }
-        if (q == high(p)) {
-          low(p) = ~q
-          high(p) = avail.pop
+        if (q == high(p)) { //check whether one of the previous if-clauses was true - if not...
+          low(p) = ~q //set low(p) to its complement
+          high(p) = avail //TODO: bug???
           aux(p) = 0
-          avail.push(p)
-        } else if (aux(q) >= 0) {
+          avail = p
+        } else if (aux(q) >= 0) { //the node is already reduced
           aux(p) = s
           s = ~q
           aux(q) = ~p
@@ -149,64 +190,29 @@ object BDDProcessing {
           aux(p) = aux(~aux(q))
           aux(~aux(q)) = p
         }
-        p = p2
+        p = p2 //go to next element in list, until end is reached (-1 in aux, ~(-1) == 0) 
       }
+
+      cleanUpBucketSort()
     }
 
-    //R4 - Clean up
-    def cleanUp() = {
-      r = ~s
+    /** Cleans up aux array after bucket sort is finished. R4 in TAOCP. */
+    def cleanUpBucketSort() = {
+      r = ~s //r is the index to clean up
       s = 0
       while (r >= 0) {
-        q = ~aux(r)
-        aux(r) = 0
-        if (s == 0) {
+        q = ~aux(r) //read pointer to first node
+        aux(r) = 0 //reset auxiliary storage
+        if (s == 0) { //store pointer to first node in s
           s = q
-        } else {
+        } else { //store other pointer in aux
           aux(p) = q
         }
         p = q
-        while (aux(p) > 0)
+        while (aux(p) > 0) //go to end of linked list
           p = aux(p)
         r = ~aux(p)
       }
-    }
-
-    //R2
-    var outerLoopOK = false
-    while (!outerLoopOK) {
-      bucketSort()
-      cleanUp()
-      //R5
-      p = s
-      var innerLoopOK = false
-      if (p == 0) {
-        //TODO: R9
-      } else q = p
-      while (!innerLoopOK) {
-        //R6
-        s = low(p) //here, p == q (?)
-
-        //R7
-        removeDuplicates()
-        while (q != 0 && low(q) == s)
-          removeDuplicates()
-
-        //R8
-        cleanUp2()
-        while (p != q)
-          cleanUp2()
-
-        //TODO: R9
-      }
-    }
-
-    //R8 (partial)
-    def cleanUp2() {
-      if (low(p) >= 0) {
-        aux(high(p)) = 0
-      }
-      p = aux(p)
     }
 
     //R7 (partial)
@@ -216,33 +222,81 @@ object BDDProcessing {
         aux(r) = ~q
       } else {
         low(q) = aux(r)
-        high(q) = avail.pop
-        avail.push(q)
+        high(q) = avail
+        avail = q
       }
       q = aux(q)
+    }
+
+    //R8 (partial)
+    def cleanUpAfterDuplicateRemoval() {
+      if (low(p) >= 0) {
+        aux(high(p)) = 0
+      }
+      p = aux(p)
     }
 
     //R9
     //0: done, 1: return to R6, 2: return to R3 
     def checkDone(): Int = {
       if (p != 0)
-        1
+        0
       else if (v > variable(root)) {
         v = v - 1
-        2
+        1
       } else {
         if (low(root) < 0) {
           root = ~low(root)
         }
-        0
+        -1
       }
     }
 
-    println(avail)
-    println(aux.mkString(","))
-    println(head.mkString(","))
+    init() //R1
 
-    FalseNode
+    //R2 - Loop on v    
+    aux(0) = 0
+    aux(1) = 0
+    var loopDecision = 0 //Represents the jump-logic (in absence of GOTOs... :)
+    while (v >= 0 && loopDecision != -1) {
+
+      loopDecision = 0
+
+      //R3+R4
+      bucketSort()
+
+      //R5
+      p = s
+      if (p == 0)
+        loopDecision = checkDone() // R9
+      else
+        q = p
+
+      while (loopDecision == 0) {
+        //R6
+        s = low(p) //here, p == q
+
+        //R7
+        removeDuplicates()
+        while (q != 0 && low(q) == s)
+          removeDuplicates()
+
+        //R8
+        cleanUpAfterDuplicateRemoval()
+        while (p != q)
+          cleanUpAfterDuplicateRemoval()
+
+        loopDecision = checkDone() // R9
+      }
+    }
+
+    /** Create BDD from result. */
+    def createReducedBDD(idx: Int): BinaryDecisionNode = idx match {
+      case 0 => FalseNode
+      case 1 => TrueNode
+      case n => BDDNode(variable(n), createReducedBDD(low(n)), createReducedBDD(high(n)))
+    }
+    createReducedBDD(bdd.size - 1)
   }
 
   /** Checks dimension of BDD.*/

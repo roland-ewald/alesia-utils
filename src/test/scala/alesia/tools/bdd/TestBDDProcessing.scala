@@ -36,12 +36,21 @@ class TestBDDProcessing {
   }
 
   @Test
-  def reduction() {
-    println("~0=" + ~0)
-    println("~(-1)=" + ~(-1))
-    println("~8=" + ~8)
-    println(BinaryDecisionNode.asInstructions(median3unreduced).mkString(","))
-    //    reduce(median3unreduced)
+  def reductionMedian3() {
+    val reducedMedian3 = reduce(median3unreduced)
+    assertEquals(7, reducedMedian3.size)
+    checkMedian3(reducedMedian3)
+
+    val secondReduction = reduce(reducedMedian3)
+    assertEquals(reducedMedian3.size, secondReduction.size)
+    checkMedian3(secondReduction)
+  }
+
+  @Test
+  def reductionId() {
+    val reducedId = reduce(id)
+    checkInstructions(reducedId)
+    assertEquals(BinaryDecisionNode.asInstructions(id).size, reducedId.size)
   }
 
 }
