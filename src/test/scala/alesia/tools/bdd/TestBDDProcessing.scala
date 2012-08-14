@@ -26,16 +26,22 @@ import org.junit.Assert._
 class TestBDDProcessing {
 
   import BDDProcessing._
+  import TestBinaryDecisionNode._
 
   @Test
   def solutionCounting() {
-    assertEquals(1, countSolutions(TestBDDNode.id))
-    assertEquals(4, countSolutions(TestBDDNode.median3))
+    assertEquals(1, countSolutions(id))
+    assertEquals(4, countSolutions(median3))
+    assertEquals(4, countSolutions(median3unreduced))
   }
 
   @Test
   def reduction() {
-    //FIXME:    reduce(TestBDDNode.median3)
+    println("~0=" + ~0)
+    println("~(-1)=" + ~(-1))
+    println("~8=" + ~8)
+    println(BinaryDecisionNode.asInstructions(median3unreduced).mkString(","))
+    //    reduce(median3unreduced)
   }
 
 }

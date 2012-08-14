@@ -25,10 +25,10 @@ import BDDProcessing._
  *  @author Roland Ewald
  */
 @Test
-class TestBDDNode {
+class TestBinaryDecisionNode {
 
-  import TestBDDNode._
-  
+  import TestBinaryDecisionNode._
+
   @Test
   def simpleBDDConstructionAndEvaluation() {
     //The constants:
@@ -58,6 +58,7 @@ class TestBDDNode {
   @Test
   def testConversionBranchInstructionsBDD() = {
     checkMedian3(asBinaryDecisionNode(asInstructions(median3)))
+    checkMedian3(asBinaryDecisionNode(asInstructions(median3unreduced)))
   }
 
   /** Checks whether truth table corresponds to median-3 function. */
@@ -74,13 +75,32 @@ class TestBDDNode {
 
 }
 
-object TestBDDNode {
+object TestBinaryDecisionNode {
+
   /** The identity function, f(x) = x. */
   val id = BDDNode(0, FalseNode, TrueNode)
 
-  /** The median function for three boolean variables. From Knuth's TAOCP, vol.4-1, p. 71.*/
+  /** The median function for three boolean variables. From Knuth's TAOCP, vol. 4-1, p. 71.*/
   val median3 = {
     val node3 = BDDNode(2, FalseNode, TrueNode)
     BDDNode(0, BDDNode(1, FalseNode, node3), BDDNode(1, node3, TrueNode))
   }
+
+  /** Unreduced version of the median function (see TAOCP, vol. 4-1, p. 71).*/
+  val median3unreduced =
+    BDDNode(0,
+      BDDNode(1,
+        BDDNode(2,
+          FalseNode,
+          FalseNode),
+        BDDNode(2,
+          FalseNode,
+          TrueNode)),
+      BDDNode(1,
+        BDDNode(2,
+          FalseNode,
+          TrueNode),
+        BDDNode(2,
+          TrueNode,
+          TrueNode)))
 }

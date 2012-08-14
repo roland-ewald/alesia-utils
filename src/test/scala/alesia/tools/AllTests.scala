@@ -16,16 +16,16 @@
 package alesia.tools
 
 import org.junit.runner.RunWith
+import alesia.tools.bdd.TestBDDProcessing
+import alesia.tools.bdd.TestBinaryDecisionNode
+import alesia.tools.math.TestJensenShannonDivergence
+import alesia.tools.math.TestShannonEntropy
 import alesia.tools.output.TestResultAggregator
 import org.junit.runners.Suite.SuiteClasses
-import alesia.tools.math.TestShannonEntropy
-import alesia.tools.math.TestJensenShannonDivergence
-import alesia.tools.bdd.TestBDDNode
-import alesia.tools.bdd.TestBDDProcessing
 
 /** Bundles all tests together.
  *  @author Roland Ewald
  */
 @RunWith(value = classOf[org.junit.runners.Suite])
-@SuiteClasses(value = Array(classOf[TestBDDProcessing], classOf[TestBDDNode], classOf[TestResultAggregator], classOf[TestShannonEntropy], classOf[TestJensenShannonDivergence]))
+@SuiteClasses(value = Array(classOf[TestBDDProcessing], classOf[TestBinaryDecisionNode], classOf[TestResultAggregator], classOf[TestShannonEntropy], classOf[TestJensenShannonDivergence]))
 class AllTests
