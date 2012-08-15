@@ -92,5 +92,7 @@ class UniqueTable {
     instrIdCounter = instrIdCounter + 1
     rv
   }
+  
+  //TODO: Add methods for composition/reduction, ordering, evaluation...
 
 }

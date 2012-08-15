@@ -28,5 +28,6 @@ import alesia.utils.bdd.TestUniqueTable
  *  @author Roland Ewald
  */
 @RunWith(value = classOf[org.junit.runners.Suite])
-@SuiteClasses(value = Array(classOf[TestUniqueTable], classOf[TestBDDProcessing], classOf[TestBinaryDecisionNode], classOf[TestResultAggregator], classOf[TestShannonEntropy], classOf[TestJensenShannonDivergence]))
+@SuiteClasses(value = Array(classOf[TestUniqueTable], classOf[TestBDDProcessing], classOf[TestBinaryDecisionNode],
+  classOf[TestResultAggregator], classOf[TestShannonEntropy], classOf[TestJensenShannonDivergence]))
 class AllTests
