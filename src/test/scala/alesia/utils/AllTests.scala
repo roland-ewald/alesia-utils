@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and 
  * limitations under the License. 
  */
-package alesia.tools
+package alesia.utils
 
 import org.junit.runner.RunWith
-import alesia.tools.bdd.TestBDDProcessing
-import alesia.tools.bdd.TestBinaryDecisionNode
-import alesia.tools.math.TestJensenShannonDivergence
-import alesia.tools.math.TestShannonEntropy
-import alesia.tools.output.TestResultAggregator
 import org.junit.runners.Suite.SuiteClasses
+import alesia.utils.math.TestShannonEntropy
+import alesia.utils.bdd.TestBinaryDecisionNode
+import alesia.utils.math.TestJensenShannonDivergence
+import alesia.utils.output.TestResultAggregator
+import alesia.utils.bdd.TestBDDProcessing
 
 /** Bundles all tests together.
  *  @author Roland Ewald

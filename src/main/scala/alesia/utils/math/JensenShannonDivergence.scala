@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and 
  * limitations under the License. 
  */
-package alesia.tools.math
+package alesia.utils.math
 
-import alesia.tools.math.ShannonEntropy.entropy
-import alesia.tools.math.ShannonEntropy.entropyFormula
+import alesia.utils.math.ShannonEntropy.entropy
+import alesia.utils.math.ShannonEntropy.entropyFormula
 
 /** Calculation of Jensen-Shannon divergence (http://en.wikipedia.org/wiki/Jensen-Shannon_divergence).
  *  It can be used to compare probability distributions and, unlike Kullback-Leibler divergence,

@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and 
  * limitations under the License. 
  */
-package alesia.tools.bdd
+package alesia.utils.math
 
-/** A very simple unique table implementation, roughly following the scheme described by D. E. Knuth in 'The Art of Computer Programming', vol. 4,
- *  fascicle 1, p. 92 et sqq.
+/** Some constants.
  *  @author Roland Ewald
  */
-class UniqueTable {
+object Constants {
 
-  private[this] var currentMaxVar = 0
-  
-  
+  /** Desired test precision. */
+  val epsilon = 10e-6
 }

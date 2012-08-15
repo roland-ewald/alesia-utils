@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and 
  * limitations under the License. 
  */
-package alesia.tools.output
+package alesia.utils.output
 
 import org.junit.Test
 import org.junit.Assert._
 import scala.collection.mutable.ListBuffer
 import james.core.math.statistics.tests.wilcoxon.WilcoxonRankSumTest
 import java.io.File
-import alesia.tools.math.JensenShannonDivergence
-import alesia.tools.results.ResultAggregator
 import sessl.util.ScalaToJava._
+import alesia.utils.results.ResultAggregator
+import alesia.utils.math.JensenShannonDivergence
 
 /** Tests for the ResultAggregator.
  *  @author Roland Ewald

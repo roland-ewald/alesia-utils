@@ -13,13 +13,24 @@
  * See the License for the specific language governing permissions and 
  * limitations under the License. 
  */
-package alesia.tools.bdd
+package alesia.utils.bdd
 
+import scala.annotation.tailrec
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.junit.Assert._
 
-import BinaryDecisionNode._
-import BDDProcessing._
+import BDDProcessing.evaluate
+import BinaryDecisionNode.asBinaryDecisionNode
+import BinaryDecisionNode.asInstructions
+import TestBinaryDecisionNode.checkInstructions
+import TestBinaryDecisionNode.checkMedian3
+import TestBinaryDecisionNode.id
+import TestBinaryDecisionNode.median3
+import TestBinaryDecisionNode.median3unreduced
+import alesia.utils.bdd.BinaryDecisionNode.asInstructions
 
 /** Tests for basic entities of binary decision diagrams.
  *  @author Roland Ewald

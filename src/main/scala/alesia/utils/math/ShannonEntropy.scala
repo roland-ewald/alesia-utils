@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and 
  * limitations under the License. 
  */
-package alesia.tools.math
+package alesia.utils.math
 
 /** Calculation of Shannon Entropy (logarithm base is e). See http://en.wikipedia.org/wiki/Shannon_entropy.
  *  @author Roland Ewald

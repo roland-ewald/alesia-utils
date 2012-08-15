@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and 
  * limitations under the License. 
  */
-package alesia.tools.output
+package alesia.utils.output
 import james.core.util.misc.CSVReader
 import sessl.james.tools.CSVFileWriter
 import java.io.BufferedReader

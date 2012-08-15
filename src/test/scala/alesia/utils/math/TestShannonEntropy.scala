@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and 
  * limitations under the License. 
  */
-package alesia.tools.math
+package alesia.utils.math
 
 import org.junit.Test
 import org.junit.Assert._
