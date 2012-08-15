@@ -22,10 +22,11 @@ import alesia.utils.bdd.TestBinaryDecisionNode
 import alesia.utils.math.TestJensenShannonDivergence
 import alesia.utils.output.TestResultAggregator
 import alesia.utils.bdd.TestBDDProcessing
+import alesia.utils.bdd.TestUniqueTable
 
 /** Bundles all tests together.
  *  @author Roland Ewald
  */
 @RunWith(value = classOf[org.junit.runners.Suite])
-@SuiteClasses(value = Array(classOf[TestBDDProcessing], classOf[TestBinaryDecisionNode], classOf[TestResultAggregator], classOf[TestShannonEntropy], classOf[TestJensenShannonDivergence]))
+@SuiteClasses(value = Array(classOf[TestUniqueTable], classOf[TestBDDProcessing], classOf[TestBinaryDecisionNode], classOf[TestResultAggregator], classOf[TestShannonEntropy], classOf[TestJensenShannonDivergence]))
 class AllTests
