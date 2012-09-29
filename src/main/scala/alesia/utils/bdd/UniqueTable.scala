@@ -52,7 +52,7 @@ class UniqueTable {
   private[this] val highInstr = Map[Int, Int]()
 
   /** Look up unique node in table. See Knuth's TAOCP (see above), sec. 7.1.4, algorithm U.
-   *  @param v the index of the variable the node relates to
+   *  @param varIdx the index of the variable the node relates to
    *  @param lowId the id of the low-branch instruction (to be followed if x_v is false)
    *  @param highId the id of the high-branch instruction (to be followed if x_v is true)
    *  @return the id of the branch instruction
