@@ -138,6 +138,28 @@ class UniqueTable extends Logging {
     }
   }
 
-  //TODO: Add methods for composition/reduction, ordering, evaluation...
+  /**
+   * @param f the instruction id of the first function
+   * @param g the instruction id of the second function
+   */
+  def and(f: Int, g: Int): Int = {
+
+    //'and' is commutative, so make this pair unique via ordering 
+    val (id1, id2) = if (f < g) (f, g) else (g, f)
+
+    //Check for obvious solutions
+    if (id1 == id2 || id2 == 1)
+      return id1
+    if (id1 == 1)
+      return id2
+    if (id1 == 0 || id2 == 0)
+      return 0
+
+      
+      
+    0
+  }
+
+  //TODO: Add methods for composition/reduction, ordering
 
 }

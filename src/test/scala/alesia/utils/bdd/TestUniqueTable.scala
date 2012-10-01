@@ -42,12 +42,21 @@ class TestUniqueTable {
     val table = new UniqueTable
 
     //defining function v1 OR v2
-    val instrIdV2 = table.unique(2, 1, 0)
-    val instrIdV1 = table.unique(1, 1, instrIdV2)
+    val instrIdV2or = table.unique(2, 1, 0)
+    val instrIdV1or = table.unique(1, 1, instrIdV2or)
+    truthTableCheck(instrIdV1or, Array(false, true, true, true), table)
 
-    assertEquals(false, table.evaluate(instrIdV1, Array(false, false)))
-    assertEquals(true, table.evaluate(instrIdV1, Array(false, true)))
-    assertEquals(true, table.evaluate(instrIdV1, Array(true, false)))
-    assertEquals(true, table.evaluate(instrIdV1, Array(true, true)))
+    //defining function v1 AND v2
+    val instrIdV2and = table.unique(2, 1, 0)
+    val instrIdV1and = table.unique(1, instrIdV2and, 0)
+    truthTableCheck(instrIdV1and, Array(false, false, false, true), table)
+  }
+
+  /** Checks a two-variable function against a simple truth table. */
+  def truthTableCheck(id: Int, expected: Array[Boolean], table: UniqueTable) {
+    assertEquals(expected(0), table.evaluate(id, Array(false, false)))
+    assertEquals(expected(1), table.evaluate(id, Array(false, true)))
+    assertEquals(expected(2), table.evaluate(id, Array(true, false)))
+    assertEquals(expected(3), table.evaluate(id, Array(true, true)))
   }
 }
