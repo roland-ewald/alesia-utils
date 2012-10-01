@@ -15,12 +15,16 @@
  */
 package alesia.utils.bdd
 
-/** A very simple unique table implementation, roughly following the scheme described by D. E. Knuth in 'The Art of Computer Programming', vol. 4,
+import sessl.util.Logging
+import scala.annotation.tailrec
+
+/**
+ * A very simple unique table implementation, roughly following the scheme described by D. E. Knuth in 'The Art of Computer Programming', vol. 4,
  *  fascicle 1, p. 92 et sqq.
  *
  *  @author Roland Ewald
  */
-class UniqueTable {
+class UniqueTable extends Logging {
 
   //Use mutable data structures internally, for performance reasons
   import scala.collection.mutable._
@@ -32,12 +36,13 @@ class UniqueTable {
   private[this] var instrIdCounter = 2;
 
   /** The false instruction. Always first element in any array of branch instructions. */
-  private[this] def falseInstr = BranchInstr(numOfVariables, 0, 0)
+  private[this] val falseInstr = BranchInstr(numOfVariables, 0, 0)
 
   /** The true instruction. Always second element in any array of branch instructions. */
-  private[this] def trueInstr = BranchInstr(numOfVariables, 1, 1)
+  private[this] val trueInstr = BranchInstr(numOfVariables, 1, 1)
 
-  /** The storage for all instructions. For each variable with index v, the map contains a map from ([v],p,q) to r, where r is
+  /**
+   * The storage for all instructions. For each variable with index v, the map contains a map from ([v],p,q) to r, where r is
    *  the id of the instruction.
    */
   private[this] val instructions = Map[Int, Map[(Int, Int), Int]]()
@@ -51,7 +56,8 @@ class UniqueTable {
   /** Maps instruction IDs to their higher branch instructions: r => r_h. */
   private[this] val highInstr = Map[Int, Int]()
 
-  /** Look up unique node in table. See Knuth's TAOCP (see above), sec. 7.1.4, algorithm U.
+  /**
+   * Look up unique node in table. See Knuth's TAOCP (see above), sec. 7.1.4, algorithm U.
    *  @param v the index of the variable the node relates to
    *  @param lowId the id of the low-branch instruction (to be followed if x_v is false)
    *  @param highId the id of the high-branch instruction (to be followed if x_v is true)
@@ -84,7 +90,8 @@ class UniqueTable {
     newId
   }
 
-  /** Creates a new instruction id.
+  /**
+   * Creates a new instruction id.
    *  @return the newly created id
    */
   private[this] def createNewId(): Int = {
@@ -92,7 +99,24 @@ class UniqueTable {
     instrIdCounter = instrIdCounter + 1
     rv
   }
-  
+
+  /**
+   * Evaluates an instruction ID regarding an array of boolean values, indexed by the variable to which they refer.
+   */
+  @tailrec
+  final def evaluate(instrId: Int, values: Array[Boolean]): Boolean = {
+    require(variables.contains(instrId), "Instruction with id '" + instrId + "' is not available.")
+    val low = lowInstr(instrId)
+    val high = highInstr(instrId)
+    //If this is one of the two fundamental instructions, return
+    if (low == high)
+      return low == 1
+    else {
+      val nextInstrId = if (values(variables(instrId))) low else high
+      evaluate(nextInstrId, values)
+    }
+  }
+
   //TODO: Add methods for composition/reduction, ordering, evaluation...
 
 }
