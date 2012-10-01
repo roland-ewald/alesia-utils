@@ -18,23 +18,36 @@ package alesia.utils.bdd
 import org.junit.Test
 import org.junit.Assert._
 
-
-/** Tests for the unique table implementation. 
+/**
+ * Tests for the unique table implementation.
  * @author Roland Ewald
  */
 @Test
 class TestUniqueTable {
-  
+
   @Test
   def simpleInserts() {
     val table = new UniqueTable
-    
+
     //Inserting trivial nodes
     assertEquals(0, table.unique(1, 0, 0))
     assertEquals(1, table.unique(10, 1, 1))
-    
+
     //Asserting first non-trivial node:
     assertEquals(2, table.unique(10, 0, 1))
   }
-  
+
+  @Test
+  def simpleEvaluation() {
+    val table = new UniqueTable
+
+    //defining function v1 OR v2
+    val instrIdV2 = table.unique(2, 1, 0)
+    val instrIdV1 = table.unique(1, 1, instrIdV2)
+
+    assertEquals(false, table.evaluate(instrIdV1, Array(false, false)))
+    assertEquals(true, table.evaluate(instrIdV1, Array(false, true)))
+    assertEquals(true, table.evaluate(instrIdV1, Array(true, false)))
+    assertEquals(true, table.evaluate(instrIdV1, Array(true, true)))
+  }
 }

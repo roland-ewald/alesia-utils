@@ -32,14 +32,8 @@ class UniqueTable extends Logging {
   /** Current number of managed variables. */
   private[this] var numOfVariables = 0
 
-  /** The counter starts at 2 since by definition falseInstr has index 0 and trueInstr has index 1. */
-  private[this] var instrIdCounter = 2;
-
-  /** The false instruction. Always first element in any array of branch instructions. */
-  private[this] val falseInstr = BranchInstr(numOfVariables, 0, 0)
-
-  /** The true instruction. Always second element in any array of branch instructions. */
-  private[this] val trueInstr = BranchInstr(numOfVariables, 1, 1)
+  /** The counter to generate unique instruction ids. */
+  private[this] var instrIdCounter = 0;
 
   /**
    * The storage for all instructions. For each variable with index v, the map contains a map from ([v],p,q) to r, where r is
@@ -47,7 +41,7 @@ class UniqueTable extends Logging {
    */
   private[this] val instructions = Map[Int, Map[(Int, Int), Int]]()
 
-  /** Maps instruction IDs to their variables: r => v. */
+  /** Maps instruction IDs to their variables: r => v. Default values refer to false and true instruction. */
   private[this] val variables = Map[Int, Int]()
 
   /** Maps instruction IDs to their lower branch instructions: r => r_l. */
@@ -55,6 +49,12 @@ class UniqueTable extends Logging {
 
   /** Maps instruction IDs to their higher branch instructions: r => r_h. */
   private[this] val highInstr = Map[Int, Int]()
+
+  /** The false instruction id. Always first element in any array of branch instructions. */
+  val falseInstrId = addNewInstruction(0, 0, 0)
+
+  /** The true instruction. Always second element in any array of branch instructions. */
+  val trueInstrId = addNewInstruction(0, 1, 1)
 
   /**
    * Look up unique node in table. See Knuth's TAOCP (see above), sec. 7.1.4, algorithm U.
@@ -72,22 +72,43 @@ class UniqueTable extends Logging {
     //Check whether there is a new variable to be considered
     if (numOfVariables <= varIdx) {
       for (vNew <- numOfVariables to varIdx)
-        instructions(vNew) = Map[(Int, Int), Int]()
+        ensureVarAvailable(vNew)
       numOfVariables = varIdx + 1
     }
 
     //Find instruction 
     val instruction = instructions(varIdx).get(lowId, highId)
     if (instruction.isDefined)
-      return instruction.get
+      instruction.get
+    else
+      addNewInstruction(varIdx, lowId, highId)
+  }
 
-    //Create new instruction id
-    val newId = createNewId()
-    variables(newId) = varIdx
-    lowInstr(newId) = lowId
-    highInstr(newId) = highId
-    instructions(varIdx)((lowId, highId)) = newId
-    newId
+  /**
+   * Adds a new instruction to the unique table.
+   * @param varIdx the index of the variable
+   * @param lowInstrIdx the index of the low instruction
+   * @param highInstrIdx the index of the high instruction
+   * @return the id of the new instruction
+   */
+  private[this] def addNewInstruction(varIdx: Int, lowInstrIdx: Int, highInstrIdx: Int): Int = {
+    ensureVarAvailable(varIdx)
+
+    val id = createNewId()
+    variables(id) = varIdx
+    lowInstr(id) = lowInstrIdx
+    highInstr(id) = highInstrIdx
+    instructions(varIdx)((lowInstrIdx, highInstrIdx)) = id
+    id
+  }
+
+  /** Ensures the variable is available in the instruction cache. */
+  private[this] def ensureVarAvailable(varIdx: Int): Unit = {
+    val alreadyAvailable = instructions.contains(varIdx)
+    if (!alreadyAvailable) {
+      instructions(varIdx) = Map[(Int, Int), Int]()
+    }
+    alreadyAvailable
   }
 
   /**
@@ -112,7 +133,7 @@ class UniqueTable extends Logging {
     if (low == high)
       return low == 1
     else {
-      val nextInstrId = if (values(variables(instrId))) low else high
+      val nextInstrId = if (values(variables(instrId) - 1)) low else high
       evaluate(nextInstrId, values)
     }
   }
