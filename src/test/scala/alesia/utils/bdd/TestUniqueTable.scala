@@ -25,31 +25,49 @@ import org.junit.Assert._
 @Test
 class TestUniqueTable {
 
-  @Test
-  def simpleInserts() {
+  /** Contains table to be tested. */
+  trait TestTable {
     val table = new UniqueTable
-
-    //Inserting trivial nodes
-    assertEquals(0, table.unique(1, 0, 0))
-    assertEquals(1, table.unique(10, 1, 1))
-
-    //Asserting first non-trivial node:
-    assertEquals(2, table.unique(10, 0, 1))
   }
 
-  @Test
-  def simpleEvaluation() {
-    val table = new UniqueTable
-
+  /** Contains some sample functions. */
+  trait TestElements extends TestTable {
     //defining function v1 OR v2
     val instrIdV2or = table.unique(2, 1, 0)
     val instrIdV1or = table.unique(1, 1, instrIdV2or)
-    truthTableCheck(instrIdV1or, Array(false, true, true, true), table)
 
     //defining function v1 AND v2
     val instrIdV2and = table.unique(2, 1, 0)
     val instrIdV1and = table.unique(1, instrIdV2and, 0)
-    truthTableCheck(instrIdV1and, Array(false, false, false, true), table)
+  }
+
+  @Test
+  def simpleInserts() {
+    new TestTable {
+      //Inserting trivial nodes
+      assertEquals(0, table.unique(1, 0, 0))
+      assertEquals(1, table.unique(10, 1, 1))
+
+      //Asserting first non-trivial node:
+      assertEquals(2, table.unique(10, 0, 1))
+    }
+  }
+
+  @Test
+  def simpleEvaluation() {
+    new TestElements {
+      truthTableCheck(instrIdV1or, Array(false, true, true, true), table)
+      truthTableCheck(instrIdV1and, Array(false, false, false, true), table)
+    }
+  }
+
+  @Test
+  def simpleAndSynthesis {
+    new TestElements {
+      assertEquals(instrIdV1and, table.and(instrIdV1or, instrIdV1and))
+      assertEquals(0, table.and(instrIdV1or, 0))
+      assertEquals(instrIdV1or, table.and(instrIdV1or, 1))
+    }
   }
 
   /** Checks a two-variable function against a simple truth table. */
@@ -59,4 +77,5 @@ class TestUniqueTable {
     assertEquals(expected(2), table.evaluate(id, Array(true, false)))
     assertEquals(expected(3), table.evaluate(id, Array(true, true)))
   }
+
 }
