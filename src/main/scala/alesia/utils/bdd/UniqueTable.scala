@@ -50,6 +50,9 @@ class UniqueTable extends Logging {
   /** Maps instruction IDs to their higher branch instructions: r => r_h. */
   private[this] val highInstr = Map[Int, Int]()
 
+  /** Maps function descriptions of the form f_{instr_id} + "AND" + g_{instr_id} onto instruction ids that represent these functions. */
+  private[this] val solutionCache = Map[String, Int]()
+
   /** The false instruction id. Always first element in any array of branch instructions. */
   val falseInstrId = addNewInstruction(0, 0, 0)
 
@@ -163,20 +166,24 @@ class UniqueTable extends Logging {
     if (id1 == 0 || id2 == 0)
       return 0
 
-    //'Melding' both function, see eq. 7.1.4.-(52) 
-    val (var1Idx, var2Idx) = (variables(id1), variables(id2))
-    val minVarIdx = math.min(var1Idx, var2Idx)
-    val (id1LowInstr, id1HighInstr) = constructInstructions(id1, var1Idx, minVarIdx)
-    val (id2LowInstr, id2HighInstr) = constructInstructions(id2, var2Idx, minVarIdx)
+    //Check cache for solutions
+    solutionCache.getOrElse(id1 + "∧" + id2,
+      {
+        //'Melding' both function, see eq. 7.1.4.-(52) 
+        val (var1Idx, var2Idx) = (variables(id1), variables(id2))
+        val minVarIdx = math.min(var1Idx, var2Idx)
+        val (id1LowInstr, id1HighInstr) = constructInstructions(id1, var1Idx, minVarIdx)
+        val (id2LowInstr, id2HighInstr) = constructInstructions(id2, var2Idx, minVarIdx)
 
-    //Recursively construct new function
-    val lowInstrResult = and(id1LowInstr, id2LowInstr)
-    val highInstrResult = and(id1HighInstr, id2HighInstr)
+        //Recursively construct new function
+        val lowInstrResult = and(id1LowInstr, id2LowInstr)
+        val highInstrResult = and(id1HighInstr, id2HighInstr)
 
-    val rv = unique(minVarIdx, lowInstrResult, highInstrResult)
-    //TODO: cache result
-
-    rv
+        val rv = unique(minVarIdx, lowInstrResult, highInstrResult)
+        //cache result
+        solutionCache.put(id1 + "∧" + id2, rv)
+        rv
+      })
   }
 
   //TODO: Add methods for composition/reduction, ordering
