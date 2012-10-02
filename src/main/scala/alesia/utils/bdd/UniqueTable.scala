@@ -127,16 +127,16 @@ class UniqueTable extends Logging {
    * Evaluates an instruction ID regarding an array of boolean values, indexed by the variable to which they refer.
    */
   @tailrec
-  final def evaluate(instrId: Int, values: Array[Boolean]): Boolean = {
-    requireInstrIds(instrId)
+  final def evaluate(f: Int, values: Array[Boolean]): Boolean = {
+    requireInstrIds(f)
 
-    val low = lowInstr(instrId)
-    val high = highInstr(instrId)
+    val low = lowInstr(f)
+    val high = highInstr(f)
     //If this is one of the two fundamental instructions, return
     if (low == high)
       return low == 1
     else {
-      val nextInstrId = if (values(variables(instrId) - 1)) low else high
+      val nextInstrId = if (values(variables(f) - 1)) low else high
       evaluate(nextInstrId, values)
     }
   }
@@ -199,6 +199,13 @@ class UniqueTable extends Logging {
   }
 
   /**
+   * Negates a function.
+   * @param f the instruction id of the function to be negated
+   * @return the instruction id of the function "¬f"
+   */
+  def not(f: Int): Int = xor(1, f)
+
+  /**
    * Combines two functions, given by their instruction ids, recursively. See eq. 55 (p. 94) of Knuth's TAOCP (see class documentation).
    * @param operation the name to be used for caching operation results, has to be unique
    * @param f the instruction id of the first function
@@ -234,7 +241,6 @@ class UniqueTable extends Logging {
       val solutionName = id1 + operation + id2
       solutionCache.getOrElse(solutionName,
         {
-          println(solutionName)
           //'Melding' both function, see eq. 7.1.4.-(52) 
           val (var1Idx, var2Idx) = (variables(id1), variables(id2))
           val minVarIdx = {

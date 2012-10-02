@@ -92,9 +92,10 @@ class TestUniqueTable {
   }
 
   @Test
-  def simpleXorSynthesis {
+  def simpleXorAndNotSynthesis {
     new TestElements {
       truthTableCheck(table.xor(v1, v2), Array(false, true, true, false), table)
+      truthTableCheck(table.not(table.xor(v1, v2)), Array(true, false, false, true), table)
     }
   }
 
