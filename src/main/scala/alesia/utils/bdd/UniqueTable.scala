@@ -123,6 +123,12 @@ class UniqueTable extends Logging {
     rv
   }
 
+  /** @return number of defined variables */
+  def variableCount = numOfVariables
+
+  /** @return number of instructions */
+  def instructionCount = instrIdCounter
+
   /**
    * Evaluates an instruction ID regarding an array of boolean values, indexed by the variable to which they refer.
    */
@@ -238,8 +244,7 @@ class UniqueTable extends Logging {
     obviousSolution(id1, id2).getOrElse {
 
       //Check cache for solutions
-      val solutionName = id1 + operation + id2
-      solutionCache.getOrElse(solutionName,
+      solutionCache.getOrElseUpdate(id1 + operation + id2,
         {
           //'Melding' both function, see eq. 7.1.4.-(52) 
           val (var1Idx, var2Idx) = (variables(id1), variables(id2))
@@ -257,11 +262,7 @@ class UniqueTable extends Logging {
           //Recursively construct new function
           val lowInstrResult = compose(operation, id1LowInstr, id2LowInstr, commutative)(obviousSolution)
           val highInstrResult = compose(operation, id1HighInstr, id2HighInstr, commutative)(obviousSolution)
-          val rv = unique(minVarIdx, lowInstrResult, highInstrResult)
-
-          //Cache result
-          solutionCache.put(solutionName, rv)
-          rv
+          unique(minVarIdx, lowInstrResult, highInstrResult)
         })
     }
   }
