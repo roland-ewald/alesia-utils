@@ -138,10 +138,19 @@ class UniqueTable extends Logging {
   }
 
   /**
+   * Combines two functions via 'and'.
    * @param f the instruction id of the first function
    * @param g the instruction id of the second function
    */
   def and(f: Int, g: Int): Int = {
+    require(f < instrIdCounter && g < instrIdCounter && f >= 0 && g >= 0, "Instruction IDs must be valid.")
+
+    def constructInstructions(id: Int, varIdx: Int, minVarIdx: Int): (Int, Int) = {
+      if (varIdx == minVarIdx)
+        (lowInstr(id), highInstr(id))
+      else
+        (id, id)
+    }
 
     //'and' is commutative, so make this pair unique via ordering 
     val (id1, id2) = if (f < g) (f, g) else (g, f)
@@ -154,9 +163,20 @@ class UniqueTable extends Logging {
     if (id1 == 0 || id2 == 0)
       return 0
 
-      
-      
-    0
+    //'Melding' both function, see eq. 7.1.4.-(52) 
+    val (var1Idx, var2Idx) = (variables(id1), variables(id2))
+    val minVarIdx = math.min(var1Idx, var2Idx)
+    val (id1LowInstr, id1HighInstr) = constructInstructions(id1, var1Idx, minVarIdx)
+    val (id2LowInstr, id2HighInstr) = constructInstructions(id2, var2Idx, minVarIdx)
+
+    //Recursively construct new function
+    val lowInstrResult = and(id1LowInstr, id2LowInstr)
+    val highInstrResult = and(id1HighInstr, id2HighInstr)
+
+    val rv = unique(minVarIdx, lowInstrResult, highInstrResult)
+    //TODO: cache result
+
+    rv
   }
 
   //TODO: Add methods for composition/reduction, ordering
