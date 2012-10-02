@@ -44,11 +44,16 @@ class TestUniqueTable {
 
   /** Contains some sample functions. */
   trait TestElements extends TestTable {
-    //defining function v1 OR v2
+
+    //Defining variables v1 and v2
+    val v1 = table.unique(1, 1, 0)
+    val v2 = table.unique(2, 1, 0)
+
+    //Defining function v1 OR v2
     val instrIdV2or = table.unique(2, 1, 0)
     val instrIdV1or = table.unique(1, 1, instrIdV2or)
 
-    //defining function v1 AND v2
+    //Defining function v1 AND v2
     val instrIdV2and = table.unique(2, 1, 0)
     val instrIdV1and = table.unique(1, instrIdV2and, 0)
 
@@ -57,8 +62,8 @@ class TestUniqueTable {
   @Test
   def testElementsOK() {
     new TestElements {
-      assertTrue(instrIdV2or == instrIdV2and)
-      assertFalse(instrIdV1or == instrIdV1and)
+      assertTrue(v2 == instrIdV2or && instrIdV2or == instrIdV2and)
+      assertTrue(instrIdV1or != instrIdV1and)
     }
   }
 
@@ -82,9 +87,14 @@ class TestUniqueTable {
   @Test
   def simpleOrSynthesis {
     new TestElements {
-      val v1 = table.unique(1, 1, 0)
-      val v2 = table.unique(2, 1, 0)
       assertEquals(instrIdV1or, table.or(v1, v2))
+    }
+  }
+
+  @Test
+  def simpleXorSynthesis {
+    new TestElements {
+      truthTableCheck(table.xor(v1, v2), Array(false, true, true, false), table)
     }
   }
 

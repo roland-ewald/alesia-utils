@@ -128,7 +128,8 @@ class UniqueTable extends Logging {
    */
   @tailrec
   final def evaluate(instrId: Int, values: Array[Boolean]): Boolean = {
-    require(variables.contains(instrId), "Instruction with id '" + instrId + "' is not available.")
+    requireInstrIds(instrId)
+
     val low = lowInstr(instrId)
     val high = highInstr(instrId)
     //If this is one of the two fundamental instructions, return
@@ -179,6 +180,25 @@ class UniqueTable extends Logging {
   }
 
   /**
+   * Combines two functions via 'xor'.
+   * @param f the instruction id of the first function
+   * @param g the instruction id of the second function
+   * @return the instruction id of the function "f⊕g"
+   */
+  def xor(f: Int, g: Int): Int = compose("⊕", f, g, commutative = true) {
+    (f1, f2) =>
+      {
+        if (f1 == 0)
+          Some(f2)
+        else if (f2 == 0)
+          Some(f1)
+        else if (f1 == f2 || (f1 == 1 && f2 == 1))
+          Some(0)
+        else None
+      }
+  }
+
+  /**
    * Combines two functions, given by their instruction ids, recursively. See eq. 55 (p. 94) of Knuth's TAOCP (see class documentation).
    * @param operation the name to be used for caching operation results, has to be unique
    * @param f the instruction id of the first function
@@ -188,7 +208,7 @@ class UniqueTable extends Logging {
    * @return the instruction id of the function "f∘g"
    */
   private[this] def compose(operation: String, f: Int, g: Int, commutative: Boolean = false)(obviousSolution: (Int, Int) => Option[Int]): Int = {
-    require(f >= 0 && f < instrIdCounter && g >= 0 && g < instrIdCounter, "Instruction IDs must be valid.")
+    requireInstrIds(f, g)
 
     /**
      * Depending on the given instruction's variable index and the minimal variable index in the synthesis,
@@ -214,9 +234,17 @@ class UniqueTable extends Logging {
       val solutionName = id1 + operation + id2
       solutionCache.getOrElse(solutionName,
         {
+          println(solutionName)
           //'Melding' both function, see eq. 7.1.4.-(52) 
           val (var1Idx, var2Idx) = (variables(id1), variables(id2))
-          val minVarIdx = math.min(var1Idx, var2Idx)
+          val minVarIdx = {
+            if (var1Idx == 0)
+              var2Idx
+            else if (var2Idx == 0)
+              var1Idx
+            else
+              math.min(var1Idx, var2Idx)
+          }
           val (id1LowInstr, id1HighInstr) = selectInstructions(id1, var1Idx, minVarIdx)
           val (id2LowInstr, id2HighInstr) = selectInstructions(id2, var2Idx, minVarIdx)
 
@@ -231,6 +259,12 @@ class UniqueTable extends Logging {
         })
     }
   }
+
+  /** Checks whether the given instruction ids are valid. */
+  private[this] def checkInstrIds(ids: Int*) = ids.forall(x => x >= 0 && x < instrIdCounter)
+
+  /** Requires valid instruction ids and constructs corresponding error message. */
+  private[this] def requireInstrIds(ids: Int*) = require(checkInstrIds(ids: _*), "One instruction id in " + ids + " is not valid.")
 
   //TODO: Add methods for reduction, re-ordering?
 
