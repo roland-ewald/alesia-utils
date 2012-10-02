@@ -160,6 +160,25 @@ class UniqueTable extends Logging {
   }
 
   /**
+   * Combines two functions via 'or'.
+   * @param f the instruction id of the first function
+   * @param g the instruction id of the second function
+   * @return the instruction id of the function "f∨g"
+   */
+  def or(f: Int, g: Int): Int = compose("∨", f, g, commutative = true) {
+    (f1, f2) =>
+      {
+        if (f1 == f2 || f2 == 0)
+          Some(f1)
+        else if (f1 == 0)
+          Some(f2)
+        else if (f1 == 1 || f2 == 1)
+          Some(1)
+        else None
+      }
+  }
+
+  /**
    * Combines two functions, given by their instruction ids, recursively. See eq. 55 (p. 94) of Knuth's TAOCP (see class documentation).
    * @param operation the name to be used for caching operation results, has to be unique
    * @param f the instruction id of the first function
@@ -202,8 +221,8 @@ class UniqueTable extends Logging {
           val (id2LowInstr, id2HighInstr) = selectInstructions(id2, var2Idx, minVarIdx)
 
           //Recursively construct new function
-          val lowInstrResult = and(id1LowInstr, id2LowInstr)
-          val highInstrResult = and(id1HighInstr, id2HighInstr)
+          val lowInstrResult = compose(operation, id1LowInstr, id2LowInstr, commutative)(obviousSolution)
+          val highInstrResult = compose(operation, id1HighInstr, id2HighInstr, commutative)(obviousSolution)
           val rv = unique(minVarIdx, lowInstrResult, highInstrResult)
 
           //Cache result

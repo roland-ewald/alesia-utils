@@ -30,17 +30,6 @@ class TestUniqueTable {
     val table = new UniqueTable
   }
 
-  /** Contains some sample functions. */
-  trait TestElements extends TestTable {
-    //defining function v1 OR v2
-    val instrIdV2or = table.unique(2, 1, 0)
-    val instrIdV1or = table.unique(1, 1, instrIdV2or)
-
-    //defining function v1 AND v2
-    val instrIdV2and = table.unique(2, 1, 0)
-    val instrIdV1and = table.unique(1, instrIdV2and, 0)
-  }
-
   @Test
   def simpleInserts() {
     new TestTable {
@@ -50,6 +39,26 @@ class TestUniqueTable {
 
       //Asserting first non-trivial node:
       assertEquals(2, table.unique(10, 0, 1))
+    }
+  }
+
+  /** Contains some sample functions. */
+  trait TestElements extends TestTable {
+    //defining function v1 OR v2
+    val instrIdV2or = table.unique(2, 1, 0)
+    val instrIdV1or = table.unique(1, 1, instrIdV2or)
+
+    //defining function v1 AND v2
+    val instrIdV2and = table.unique(2, 1, 0)
+    val instrIdV1and = table.unique(1, instrIdV2and, 0)
+
+  }
+
+  @Test
+  def testElementsOK() {
+    new TestElements {
+      assertTrue(instrIdV2or == instrIdV2and)
+      assertFalse(instrIdV1or == instrIdV1and)
     }
   }
 
@@ -67,6 +76,15 @@ class TestUniqueTable {
       assertEquals(instrIdV1and, table.and(instrIdV1or, instrIdV1and))
       assertEquals(0, table.and(instrIdV1or, 0))
       assertEquals(instrIdV1or, table.and(instrIdV1or, 1))
+    }
+  }
+
+  @Test
+  def simpleOrSynthesis {
+    new TestElements {
+      val v1 = table.unique(1, 1, 0)
+      val v2 = table.unique(2, 1, 0)
+      assertEquals(instrIdV1or, table.or(v1, v2))
     }
   }
 
