@@ -144,48 +144,75 @@ class UniqueTable extends Logging {
    * Combines two functions via 'and'.
    * @param f the instruction id of the first function
    * @param g the instruction id of the second function
+   * @return the instruction id of the function "f∧g"
    */
-  def and(f: Int, g: Int): Int = {
-    require(f < instrIdCounter && g < instrIdCounter && f >= 0 && g >= 0, "Instruction IDs must be valid.")
+  def and(f: Int, g: Int): Int = compose("∧", f, g, commutative = true) {
+    (f1, f2) =>
+      {
+        if (f1 == f2 || f2 == 1)
+          Some(f1)
+        else if (f1 == 1)
+          Some(f2)
+        else if (f1 == 0 || f2 == 0)
+          Some(0)
+        else None
+      }
+  }
 
-    def constructInstructions(id: Int, varIdx: Int, minVarIdx: Int): (Int, Int) = {
+  /**
+   * Combines two functions, given by their instruction ids, recursively. See eq. 55 (p. 94) of Knuth's TAOCP (see class documentation).
+   * @param operation the name to be used for caching operation results, has to be unique
+   * @param f the instruction id of the first function
+   * @param g the instruction id of the second function
+   * @param commutative if true, instruction ids will ordered (to improve likelihood of a cache hit)
+   * @param obviousSolution this is the 'core' of the method, as it implements the end of the recursion and is specific to the operation
+   * @return the instruction id of the function "f∘g"
+   */
+  private[this] def compose(operation: String, f: Int, g: Int, commutative: Boolean = false)(obviousSolution: (Int, Int) => Option[Int]): Int = {
+    require(f >= 0 && f < instrIdCounter && g >= 0 && g < instrIdCounter, "Instruction IDs must be valid.")
+
+    /**
+     * Depending on the given instruction's variable index and the minimal variable index in the synthesis,
+     * select which instruction ids to consider for lower/higher branches.
+     * @param id the instruction id
+     * @param varIdx the variable index for the given instruction
+     * @param minVarIdx the minimal variable index to be used in the synthesized function
+     */
+    def selectInstructions(id: Int, varIdx: Int, minVarIdx: Int): (Int, Int) = {
       if (varIdx == minVarIdx)
         (lowInstr(id), highInstr(id))
       else
         (id, id)
     }
 
-    //'and' is commutative, so make this pair unique via ordering 
-    val (id1, id2) = if (f < g) (f, g) else (g, f)
+    //If operation is commutative, make this pair unique via ordering 
+    val (id1, id2) = if (commutative && f > g) (g, f) else (f, g)
 
-    //Check for obvious solutions
-    if (id1 == id2 || id2 == 1)
-      return id1
-    if (id1 == 1)
-      return id2
-    if (id1 == 0 || id2 == 0)
-      return 0
+    //Check for obvious solution (terminates recursion for trivial cases)
+    obviousSolution(id1, id2).getOrElse {
 
-    //Check cache for solutions
-    solutionCache.getOrElse(id1 + "∧" + id2,
-      {
-        //'Melding' both function, see eq. 7.1.4.-(52) 
-        val (var1Idx, var2Idx) = (variables(id1), variables(id2))
-        val minVarIdx = math.min(var1Idx, var2Idx)
-        val (id1LowInstr, id1HighInstr) = constructInstructions(id1, var1Idx, minVarIdx)
-        val (id2LowInstr, id2HighInstr) = constructInstructions(id2, var2Idx, minVarIdx)
+      //Check cache for solutions
+      val solutionName = id1 + operation + id2
+      solutionCache.getOrElse(solutionName,
+        {
+          //'Melding' both function, see eq. 7.1.4.-(52) 
+          val (var1Idx, var2Idx) = (variables(id1), variables(id2))
+          val minVarIdx = math.min(var1Idx, var2Idx)
+          val (id1LowInstr, id1HighInstr) = selectInstructions(id1, var1Idx, minVarIdx)
+          val (id2LowInstr, id2HighInstr) = selectInstructions(id2, var2Idx, minVarIdx)
 
-        //Recursively construct new function
-        val lowInstrResult = and(id1LowInstr, id2LowInstr)
-        val highInstrResult = and(id1HighInstr, id2HighInstr)
+          //Recursively construct new function
+          val lowInstrResult = and(id1LowInstr, id2LowInstr)
+          val highInstrResult = and(id1HighInstr, id2HighInstr)
+          val rv = unique(minVarIdx, lowInstrResult, highInstrResult)
 
-        val rv = unique(minVarIdx, lowInstrResult, highInstrResult)
-        //cache result
-        solutionCache.put(id1 + "∧" + id2, rv)
-        rv
-      })
+          //Cache result
+          solutionCache.put(solutionName, rv)
+          rv
+        })
+    }
   }
 
-  //TODO: Add methods for composition/reduction, ordering
+  //TODO: Add methods for reduction, re-ordering?
 
 }
