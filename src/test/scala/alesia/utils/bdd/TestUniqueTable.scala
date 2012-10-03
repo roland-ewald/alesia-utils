@@ -99,6 +99,21 @@ class TestUniqueTable {
     }
   }
 
+  @Test
+  def simpleImpliesSynthesis {
+    new TestElements {
+      truthTableCheck(table.implies(v1, v2), Array(true, true, false, true), table)
+    }
+  }
+
+  @Test
+  def containsWorks {
+    new TestElements {
+      assertTrue(table.isContained(table.and(v1, v2), table.or(v1, v2)))
+      assertFalse(table.isContained(table.or(v1, v2), table.and(v1, v2)))
+    }
+  }
+
   /** Checks a two-variable function against a simple truth table. */
   def truthTableCheck(id: Int, expected: Array[Boolean], table: UniqueTable) {
     assertEquals(expected(0), table.evaluate(id, Array(false, false)))

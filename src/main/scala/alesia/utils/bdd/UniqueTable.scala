@@ -212,6 +212,24 @@ class UniqueTable extends Logging {
   def not(f: Int): Int = xor(1, f)
 
   /**
+   * Defines an implication f => g. This is rewritten to "(¬f)∨g".
+   * @param f the condition
+   * @param g the implication
+   * @return the instruction id of the function "(¬f)∨g"
+   */
+  def implies(f: Int, g: Int) = or(not(f), g)
+
+  /**
+   * Checks whether the set with characteristic function f is contained in
+   * or equal to the set with characteristic function g.
+   * In other words, it is checked whether S_f  ⊆ S_g.
+   * @param f characteristic function of S_f
+   * @param g characteristic function of S_g
+   * @return true iff S_f  ⊆ S_g holds
+   */
+  def isContained(f: Int, g: Int): Boolean = and(f, not(g)) == 0
+
+  /**
    * Combines two functions, given by their instruction ids, recursively. See eq. 55 (p. 94) of Knuth's TAOCP (see class documentation).
    * @param operation the name to be used for caching operation results, has to be unique
    * @param f the instruction id of the first function
