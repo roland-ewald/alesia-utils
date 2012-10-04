@@ -147,6 +147,8 @@ class UniqueTable extends Logging {
     }
   }
 
+  // Logical operations
+
   /**
    * Combines two functions via 'and'.
    * @param f the instruction id of the first function
@@ -218,6 +220,41 @@ class UniqueTable extends Logging {
    * @return the instruction id of the function "(¬f)∨g"
    */
   def implies(f: Int, g: Int) = or(not(f), g)
+
+  // Operations on sets
+
+  /** @return the instruction id that corresponds to the characteristic function of the empty set */
+  def emptySet = 0
+
+  /** @return the instruction id that corresponds to the characteristics function of the set that contains all elements (finitely many, all possible assignments for the known variables) */
+  def fullSet = 1
+
+  /**
+   * Creates a characteristic function for the union S_f ∪ S_g, where each set is given by
+   * its characteristic function (f and g, respectively).
+   * @param f the characteristic function of S_f
+   * @param g the characteristic function of S_g
+   * @return the characteristic function of S_f ∪ S_g
+   */
+  def union(f: Int, g: Int): Int = or(f, g)
+
+  /**
+   * Creates a characteristic function for the intersection S_f ∩ S_g, where each set is given by
+   * its characteristic function (f and g, respectively).
+   * @param f the characteristic function of S_f
+   * @param g the characteristic function of S_g
+   * @return the characteristic function of S_f ∩ S_g
+   */
+  def intersection(f: Int, g: Int): Int = and(f, g)
+
+  /**
+   * Creates a characteristic function for the difference S_f \ S_g, where each set is given by
+   * its characteristic function (f and g, respectively).
+   * @param f the characteristic function of S_f
+   * @param g the characteristic function of S_g
+   * @return the characteristic function of S_f \ S_g
+   */
+  def difference(f: Int, g: Int): Int = and(f, not(g))
 
   /**
    * Checks whether the set with characteristic function f is contained in

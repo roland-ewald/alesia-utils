@@ -114,6 +114,15 @@ class TestUniqueTable {
     }
   }
 
+  @Test
+  def setOperationsWork {
+    new TestElements {
+      assertEquals(table.and(v1, v2), table.intersection(table.or(v1, v2), table.and(v1, v2)))
+      assertEquals(table.or(v1, v2), table.union(table.or(v1, v2), table.and(v1, v2)))
+      assertEquals(table.xor(v1, v2), table.difference(table.or(v1, v2), table.and(v1, v2)))
+    }
+  }
+
   /** Checks a two-variable function against a simple truth table. */
   def truthTableCheck(id: Int, expected: Array[Boolean], table: UniqueTable) {
     assertEquals(expected(0), table.evaluate(id, Array(false, false)))
