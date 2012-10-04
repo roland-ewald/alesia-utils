@@ -14,7 +14,7 @@
  * limitations under the License. 
  */
 package alesia.utils.output
-import james.core.util.misc.CSVReader
+import org.jamesii.core.util.misc.CSVReader
 import sessl.james.tools.CSVFileWriter
 import java.io.BufferedReader
 import java.io.FileReader

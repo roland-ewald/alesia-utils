@@ -18,7 +18,7 @@ package alesia.utils.output
 import org.junit.Test
 import org.junit.Assert._
 import scala.collection.mutable.ListBuffer
-import james.core.math.statistics.tests.wilcoxon.WilcoxonRankSumTest
+import org.jamesii.core.math.statistics.tests.wilcoxon.WilcoxonRankSumTest
 import java.io.File
 import sessl.util.ScalaToJava._
 import alesia.utils.results.ResultAggregator
