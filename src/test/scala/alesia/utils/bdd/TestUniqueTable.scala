@@ -120,6 +120,7 @@ class TestUniqueTable {
       assertEquals(table.and(v1, v2), table.intersection(table.or(v1, v2), table.and(v1, v2)))
       assertEquals(table.or(v1, v2), table.union(table.or(v1, v2), table.and(v1, v2)))
       assertEquals(table.xor(v1, v2), table.difference(table.or(v1, v2), table.and(v1, v2)))
+      assertTrue(table.isEmpty(table.and(v1, table.not(v1))))
     }
   }
 

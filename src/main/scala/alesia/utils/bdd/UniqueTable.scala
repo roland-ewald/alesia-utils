@@ -226,6 +226,9 @@ class UniqueTable extends Logging {
   /** @return the instruction id that corresponds to the characteristic function of the empty set */
   def emptySet = 0
 
+  /** @return true if this is the characteristic function of the empty set*/
+  def isEmpty(f: Int) = (f == 0)
+
   /** @return the instruction id that corresponds to the characteristics function of the set that contains all elements (finitely many, all possible assignments for the known variables) */
   def fullSet = 1
 
