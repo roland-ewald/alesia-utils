@@ -87,6 +87,14 @@ class UniqueTable extends Logging {
   }
 
   /**
+   * @return triple (var_num, low_instr_id, high_instr_id) for a given instruction id
+   */
+  def getInstruction(id: Int) = {
+    requireInstrIds(id)
+    (variables(id), lowInstr(id), highInstr(id))
+  }
+
+  /**
    * Adds a new instruction to the unique table.
    * @param varIdx the index of the variable
    * @param lowInstrIdx the index of the low instruction
