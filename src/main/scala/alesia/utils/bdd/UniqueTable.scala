@@ -72,10 +72,10 @@ class UniqueTable extends Logging {
       return lowId
 
     //Check whether there is a new variable to be considered
-    if (numOfVariables <= varIdx) {
+    if (numOfVariables < varIdx) {
       for (vNew <- numOfVariables to varIdx)
         ensureVarAvailable(vNew)
-      numOfVariables = varIdx + 1
+      numOfVariables = varIdx
     }
 
     //Find instruction 
@@ -330,6 +330,27 @@ class UniqueTable extends Logging {
 
   /** Requires valid instruction ids and constructs corresponding error message. */
   private[this] def requireInstrIds(ids: Int*) = require(checkInstrIds(ids: _*), "One instruction id in " + ids + " is not valid.")
+
+  /**
+   * Creates a structural representation of a function/set, given as a list of lines to easier support recursive nesting.
+   * @param id the instruction id of the function
+   */
+  def structureOf(id: Int, dict: Map[Int, String] = Map(), indent: String = "\t"): List[String] = id match {
+    case 0 => List()
+    case 1 => List("true")
+    case _ => {
+      val thisVar = dict.getOrElse(variables(id), id.toString)
+      val lowBranch = structureOf(lowInstr(id), dict, indent)
+      val highBranch = structureOf(highInstr(id), dict, indent)
+
+      if (highBranch.isEmpty)
+        "if(!" + thisVar + ") {" :: lowBranch.map(indent + _) ::: List("}")
+      else {
+        "if(" + thisVar + ") {" :: highBranch.map(indent + _) ::: (
+          if (lowBranch.isEmpty) List("}") else List("}", "else {") ::: lowBranch.map(indent + _) ::: List("}"))
+      }
+    }
+  }
 
   //TODO: Add methods for reduction, re-ordering?
 
