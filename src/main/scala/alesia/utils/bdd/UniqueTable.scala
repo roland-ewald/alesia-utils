@@ -334,14 +334,17 @@ class UniqueTable extends Logging {
   /**
    * Creates a structural representation of a function/set, given as a list of lines to easier support recursive nesting.
    * @param id the instruction id of the function
+   * @param varNames the map from variable numbers to variable names
+   * @param indent the string to be used for indentation
+   * @return list of lines that represent the function in pseudo-code
    */
-  def structureOf(id: Int, dict: Map[Int, String] = Map(), indent: String = "\t"): List[String] = id match {
+  def structureOf(id: Int, varNames: Map[Int, String] = Map(), indent: String = "\t"): List[String] = id match {
     case 0 => List()
     case 1 => List("true")
     case _ => {
-      val thisVar = dict.getOrElse(variables(id), id.toString)
-      val lowBranch = structureOf(lowInstr(id), dict, indent)
-      val highBranch = structureOf(highInstr(id), dict, indent)
+      val thisVar = varNames.getOrElse(variables(id), id.toString)
+      val lowBranch = structureOf(lowInstr(id), varNames, indent)
+      val highBranch = structureOf(highInstr(id), varNames, indent)
 
       if (highBranch.isEmpty)
         "if(!" + thisVar + ") {" :: lowBranch.map(indent + _) ::: List("}")
@@ -352,6 +355,5 @@ class UniqueTable extends Logging {
     }
   }
 
-  //TODO: Add methods for reduction, re-ordering?
-
+  //TODO: Add methods for re-ordering?
 }
