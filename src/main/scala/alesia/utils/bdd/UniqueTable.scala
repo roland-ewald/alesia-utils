@@ -365,3 +365,46 @@ class UniqueTable extends Logging {
 
   //TODO: Add methods for re-ordering?
 }
+
+/**
+ * Some helper functions for testing.
+ */
+object UniqueTable extends Logging {
+
+  /** Checks a two-variable function against a simple truth table. */
+  def truthTableCheck(id: Int, expected: Array[Boolean], table: UniqueTable): Boolean = {
+    expected(0) == table.evaluate(id, Array(false, false)) &&
+      expected(1) == table.evaluate(id, Array(false, true)) &&
+      expected(2) == table.evaluate(id, Array(true, false)) &&
+      expected(3) == table.evaluate(id, Array(true, true))
+  }
+
+  /**
+   * Checks whether the BDD representation of a function with given instruction id is valid.
+   * @param id the instruction id
+   * @param table the table that stores it
+   */
+  def bddIsValid(id: Int, table: UniqueTable): Boolean = id match {
+    case 0 => true
+    case 1 => true
+    case _ => {
+      val instr = table.getInstruction(id)
+      val lowerInstr = table.getInstruction(instr._2)
+      val higherInstr = table.getInstruction(instr._3)
+      if (instr._1 <= lowerInstr._1) {
+        logger.debug(constructValidationErrorMsg(id, instr, instr._2, lowerInstr))
+        false
+      } else if (instr._1 <= higherInstr._1) {
+        logger.debug(constructValidationErrorMsg(id, instr, instr._3, higherInstr))
+        false
+      }
+      bddIsValid(instr._2, table) && bddIsValid(instr._3, table)
+    }
+  }
+
+  /** Constructs error message for bdd representation validation. */
+  private[this] def constructValidationErrorMsg(parentId: Int, parent: (Int, Int, Int), childId: Int, child: (Int, Int, Int)) = {
+    "Parent with id " + parent + " -- " + parent + " -- points to instruction with id " + childId + " -- " + child + " -- which is invalid (variable numbers must be descending)"
+  }
+
+}

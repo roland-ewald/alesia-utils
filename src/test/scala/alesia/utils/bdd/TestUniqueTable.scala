@@ -18,6 +18,7 @@ package alesia.utils.bdd
 import org.junit.Test
 import org.junit.Assert._
 import sessl.util.Logging
+import UniqueTable._
 
 /**
  * Tests for the unique table implementation.
@@ -58,7 +59,7 @@ class TestUniqueTable {
     val instrIdV2and = table.unique(2, 1, 0)
     val instrIdV1and = table.unique(1, instrIdV2and, 0)
 
-    assert(TestUniqueTable.bddIsValid(instrIdV1and, table))
+    assert(bddIsValid(instrIdV1and, table))
 
   }
 
@@ -73,8 +74,8 @@ class TestUniqueTable {
   @Test
   def simpleEvaluation() {
     new TestElements {
-      TestUniqueTable.truthTableCheck(instrIdV1or, Array(false, true, true, true), table)
-      TestUniqueTable.truthTableCheck(instrIdV1and, Array(false, false, false, true), table)
+      assert(truthTableCheck(instrIdV1or, Array(false, true, true, true), table))
+      assert(truthTableCheck(instrIdV1and, Array(false, false, false, true), table))
     }
   }
 
@@ -97,15 +98,15 @@ class TestUniqueTable {
   @Test
   def simpleXorAndNotSynthesis {
     new TestElements {
-      TestUniqueTable.truthTableCheck(table.xor(v1, v2), Array(false, true, true, false), table)
-      TestUniqueTable.truthTableCheck(table.not(table.xor(v1, v2)), Array(true, false, false, true), table)
+      assert(truthTableCheck(table.xor(v1, v2), Array(false, true, true, false), table))
+      assert(truthTableCheck(table.not(table.xor(v1, v2)), Array(true, false, false, true), table))
     }
   }
 
   @Test
   def simpleImpliesSynthesis {
     new TestElements {
-      TestUniqueTable.truthTableCheck(table.implies(v1, v2), Array(true, true, false, true), table)
+      assert(truthTableCheck(table.implies(v1, v2), Array(true, true, false, true), table))
     }
   }
 
@@ -125,45 +126,6 @@ class TestUniqueTable {
       assertEquals(table.xor(v1, v2), table.difference(table.or(v1, v2), table.and(v1, v2)))
       assertTrue(table.isEmpty(table.and(v1, table.not(v1))))
     }
-  }
-
-}
-
-object TestUniqueTable extends Logging {
-
-  /** Checks a two-variable function against a simple truth table. */
-  def truthTableCheck(id: Int, expected: Array[Boolean], table: UniqueTable) {
-    assertEquals(expected(0), table.evaluate(id, Array(false, false)))
-    assertEquals(expected(1), table.evaluate(id, Array(false, true)))
-    assertEquals(expected(2), table.evaluate(id, Array(true, false)))
-    assertEquals(expected(3), table.evaluate(id, Array(true, true)))
-  }
-
-  /**
-   * Checks whether the BDD representation of a function with given instruction id is valid.
-   * @param id the instruction id
-   * @param table the table that stores it
-   */
-  def bddIsValid(id: Int, table: UniqueTable): Boolean = id match {
-    case 0 => true
-    case 1 => true
-    case _ => {
-      val instr = table.getInstruction(id)
-      val lowerInstr = table.getInstruction(instr._2)
-      val higherInstr = table.getInstruction(instr._3)
-      if (instr._1 <= lowerInstr._1) {
-        logger.debug(constructValidationErrorMsg(id, instr, instr._2, lowerInstr))
-        false
-      } else if (instr._1 <= higherInstr._1) {
-        logger.debug(constructValidationErrorMsg(id, instr, instr._3, higherInstr))
-        false
-      }
-      bddIsValid(instr._2, table) && bddIsValid(instr._3, table)
-    }
-  }
-
-  private[this] def constructValidationErrorMsg(parentId: Int, parent: (Int, Int, Int), childId: Int, child: (Int, Int, Int)) = {
-    "Parent with id " + parent + " -- " + parent + " -- points to instruction with id " + childId + " -- " + child + " -- which is invalid (variable numbers must be descending)"
   }
 
 }
