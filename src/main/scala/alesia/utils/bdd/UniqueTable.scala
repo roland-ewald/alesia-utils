@@ -150,7 +150,7 @@ class UniqueTable extends Logging {
     if (low == high)
       return low == 1
     else {
-      val nextInstrId = if (values(variables(f) - 1)) low else high
+      val nextInstrId = if (!values(variables(f) - 1)) low else high
       evaluate(nextInstrId, values)
     }
   }
@@ -229,6 +229,35 @@ class UniqueTable extends Logging {
    */
   def implies(f: Int, g: Int) = or(not(f), g)
 
+  /**
+   * Naive implementation of variable substitution. Can only be used for a constant increment/decrement
+   * regarding variable indices (otherwise the ordering constraint could be violated).
+   * @param f the function for which to substitute variables
+   * @param sub the varIdx -> varIdx' map defining the substitution
+   * @return instruction id of f [varIdx/varIdx']
+   */
+  def substitute(f: Int, sub: scala.collection.Map[Int, Int]): Int = {
+    //TODO: Generalize this; it currently only works for substitutions with a constant varidx-increment!
+    require(sub.nonEmpty && sub.map(sub => (sub._1 - sub._2)).toSet.size == 1)
+    substituteSimple(f, sub)
+  }
+
+  /**
+   * Simple substitution function.
+   *
+   * @param f the function for which to substitute variables
+   * @param sub the varIdx -> varIdx' map defining the substitution
+   * @return instruction id of f [varIdx/varIdx']
+   */
+  private[this] def substituteSimple(f: Int, sub: scala.collection.Map[Int, Int]): Int = f match {
+    case 0 => 0
+    case 1 => 1
+    case _ => {
+      val instr = getInstruction(f)
+      unique(sub(instr._1), substituteSimple(instr._2, sub), substituteSimple(instr._3, sub))
+    }
+  }
+
   // Operations on sets
 
   /** @return the instruction id that corresponds to the characteristic function of the empty set */
@@ -276,6 +305,8 @@ class UniqueTable extends Logging {
    * @return true iff S_f  ⊆ S_g holds
    */
   def isContained(f: Int, g: Int): Boolean = and(f, not(g)) == 0
+
+  //Internal methods  
 
   /**
    * Combines two functions, given by their instruction ids, recursively. See eq. 55 (p. 94) of Knuth's TAOCP (see class documentation).

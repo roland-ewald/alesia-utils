@@ -48,16 +48,16 @@ class TestUniqueTable {
   trait TestElements extends TestTable {
 
     //Defining variables v1 and v2
-    val v1 = table.unique(1, 1, 0)
-    val v2 = table.unique(2, 1, 0)
+    val v1 = table.unique(1, 0, 1)
+    val v2 = table.unique(2, 0, 1)
 
     //Defining function v1 OR v2
-    val instrIdV2or = table.unique(2, 1, 0)
-    val instrIdV1or = table.unique(1, 1, instrIdV2or)
+    val instrIdV2or = table.unique(2, 0, 1)
+    val instrIdV1or = table.unique(1, instrIdV2or, 1)
 
     //Defining function v1 AND v2
-    val instrIdV2and = table.unique(2, 1, 0)
-    val instrIdV1and = table.unique(1, instrIdV2and, 0)
+    val instrIdV2and = table.unique(2, 0, 1)
+    val instrIdV1and = table.unique(1, 0, instrIdV2and)
 
     assert(bddIsValid(instrIdV1and, table))
 
@@ -119,12 +119,22 @@ class TestUniqueTable {
   }
 
   @Test
-  def setOperationsWork {
+  def setOperationsWorks {
     new TestElements {
       assertEquals(table.and(v1, v2), table.intersection(table.or(v1, v2), table.and(v1, v2)))
       assertEquals(table.or(v1, v2), table.union(table.or(v1, v2), table.and(v1, v2)))
       assertEquals(table.xor(v1, v2), table.difference(table.or(v1, v2), table.and(v1, v2)))
       assertTrue(table.isEmpty(table.and(v1, table.not(v1))))
+    }
+  }
+
+  @Test
+  def simpleSubstitutionWorks {
+    new TestElements {
+      val v3 = table.unique(3, 0, 1)
+      val v4 = table.unique(4, 0, 1)
+      val instrIdV3orV4 = table.unique(3, v4, 1)
+      assertEquals(instrIdV1or, table.substitute(instrIdV3orV4, Map(3 -> 1, 4 -> 2)))
     }
   }
 
