@@ -258,6 +258,45 @@ class UniqueTable extends Logging {
     }
   }
 
+  //Quantifiers
+
+  /**
+   * Implements 'exists' quantifier.
+   * The returned function is of the form E x_1, ..., x_n : f.
+   * @param varIdxs the numbers of the variables on which to quantify
+   * @param f the function to be quantified
+   * @return instruction id of the function E x_1, ..., x_n : f
+   */
+  def exists(varIdxs: List[Int], f: Int): Int = exists(f, varIdxs.foldLeft(1)((g, varIdx) => and(g, unique(varIdx, 0, 1))))
+
+  /**
+   * 
+   */
+  def exists(f: Int, g: Int): Int = f match {
+    case 0 => 0
+    case 1 => 1
+    case _ => {
+      //TODO
+      42
+    }
+  }
+
+  /**
+   * Implements 'for all' quantifier.
+   * The returned function is of the form A x_1, ..., x_n : f.
+   * @param varIdxs the numbers of the variables on which to quantify
+   * @param f the function to be quantified
+   * @return instruction id of the function A x_1, ..., x_n : f
+   */
+  def forall(varIdxs: List[Int], f: Int): Int = f match {
+    case 0 => 0
+    case 1 => 1
+    case _ => {
+      //TODO
+      42
+    }
+  }
+
   // Operations on sets
 
   /** @return the instruction id that corresponds to the characteristic function of the empty set */
