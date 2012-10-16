@@ -29,6 +29,15 @@ class UniqueTable extends Logging {
   //Use mutable data structures internally, for performance reasons
   import scala.collection.mutable._
 
+  /** The symbol used as an AND sign in the memo cache. */
+  val AND_SIGN = "∧"
+
+  /** The symbol used as an OR sign in the memo cache. */
+  val OR_SIGN = "∨"
+
+  /** The symbol used as an XOR sign in the memo cache. */
+  val XOR_SIGN = "⊕"
+
   /** Current number of managed variables. */
   private[this] var numOfVariables = 0
 
@@ -163,7 +172,7 @@ class UniqueTable extends Logging {
    * @param g the instruction id of the second function
    * @return the instruction id of the function "f∧g"
    */
-  def and(f: Int, g: Int): Int = compose("∧", f, g, commutative = true) {
+  def and(f: Int, g: Int): Int = compose(AND_SIGN, f, g, commutative = true) {
     (f1, f2) =>
       {
         if (f1 == f2 || f2 == 1)
@@ -182,7 +191,7 @@ class UniqueTable extends Logging {
    * @param g the instruction id of the second function
    * @return the instruction id of the function "f∨g"
    */
-  def or(f: Int, g: Int): Int = compose("∨", f, g, commutative = true) {
+  def or(f: Int, g: Int): Int = compose(OR_SIGN, f, g, commutative = true) {
     (f1, f2) =>
       {
         if (f1 == f2 || f2 == 0)
@@ -201,7 +210,7 @@ class UniqueTable extends Logging {
    * @param g the instruction id of the second function
    * @return the instruction id of the function "f⊕g"
    */
-  def xor(f: Int, g: Int): Int = compose("⊕", f, g, commutative = true) {
+  def xor(f: Int, g: Int): Int = compose(XOR_SIGN, f, g, commutative = true) {
     (f1, f2) =>
       {
         if (f1 == 0)
@@ -270,15 +279,18 @@ class UniqueTable extends Logging {
   def exists(varIdxs: List[Int], f: Int): Int = exists(f, varIdxs.foldLeft(1)((g, varIdx) => and(g, unique(varIdx, 0, 1))))
 
   /**
-   * 
+   *
    */
   def exists(f: Int, g: Int): Int = f match {
     case 0 => 0
     case 1 => 1
-    case _ => {
-      //TODO
-      42
-    }
+    case _ => solutionCache.getOrElseUpdate(f + AND_SIGN + g,
+      {
+        val (minVarIdx, fInstr, gInstr) = meld(f: Int, g: Int)
+        val rLow = and(fInstr._1, gInstr._1)
+        val rHigh = and(fInstr._2, gInstr._2)
+        42
+      })
   }
 
   /**
@@ -359,6 +371,32 @@ class UniqueTable extends Logging {
   private[this] def compose(operation: String, f: Int, g: Int, commutative: Boolean = false)(obviousSolution: (Int, Int) => Option[Int]): Int = {
     requireInstrIds(f, g)
 
+    //If operation is commutative, make this pair unique via ordering 
+    val (id1, id2) = if (commutative && f > g) (g, f) else (f, g)
+
+    //Check for obvious solution (terminates recursion for trivial cases)
+    obviousSolution(id1, id2).getOrElse {
+
+      //Check cache for solutions
+      solutionCache.getOrElseUpdate(id1 + operation + id2,
+        {
+          //'Meld' the two functions, i.e. recursively merge them depending on the variable with minimal index 
+          val (minVarIdx, (id1LowInstr, id1HighInstr), (id2LowInstr, id2HighInstr)) = meld(id1, id2)
+
+          //Recursively construct new function
+          val lowInstrResult = compose(operation, id1LowInstr, id2LowInstr, commutative)(obviousSolution)
+          val highInstrResult = compose(operation, id1HighInstr, id2HighInstr, commutative)(obviousSolution)
+          unique(minVarIdx, lowInstrResult, highInstrResult)
+        })
+    }
+  }
+
+  /**
+   * 'Melding' two functions. See equations 37 and 52 of sec. 7.1.4.
+   * @return index of the minimal variable and the instruction id tuples (f_low,f_high) and (g_low,g_high)
+   */
+  private[this] def meld(f: Int, g: Int) = {
+
     /**
      * Depending on the given instruction's variable index and the minimal variable index in the synthesis,
      * select which instruction ids to consider for lower/higher branches.
@@ -373,34 +411,17 @@ class UniqueTable extends Logging {
         (id, id)
     }
 
-    //If operation is commutative, make this pair unique via ordering 
-    val (id1, id2) = if (commutative && f > g) (g, f) else (f, g)
-
-    //Check for obvious solution (terminates recursion for trivial cases)
-    obviousSolution(id1, id2).getOrElse {
-
-      //Check cache for solutions
-      solutionCache.getOrElseUpdate(id1 + operation + id2,
-        {
-          //'Melding' both function, see eq. 7.1.4.-(52) 
-          val (var1Idx, var2Idx) = (variables(id1), variables(id2))
-          val minVarIdx = {
-            if (var1Idx == 0)
-              var2Idx
-            else if (var2Idx == 0)
-              var1Idx
-            else
-              math.min(var1Idx, var2Idx)
-          }
-          val (id1LowInstr, id1HighInstr) = selectInstructions(id1, var1Idx, minVarIdx)
-          val (id2LowInstr, id2HighInstr) = selectInstructions(id2, var2Idx, minVarIdx)
-
-          //Recursively construct new function
-          val lowInstrResult = compose(operation, id1LowInstr, id2LowInstr, commutative)(obviousSolution)
-          val highInstrResult = compose(operation, id1HighInstr, id2HighInstr, commutative)(obviousSolution)
-          unique(minVarIdx, lowInstrResult, highInstrResult)
-        })
+    val (var1Idx, var2Idx) = (variables(f), variables(g))
+    val minVarIdx = {
+      if (var1Idx == 0)
+        var2Idx
+      else if (var2Idx == 0)
+        var1Idx
+      else
+        math.min(var1Idx, var2Idx)
     }
+
+    (minVarIdx, selectInstructions(f, var1Idx, minVarIdx), selectInstructions(g, var2Idx, minVarIdx))
   }
 
   /** Checks whether the given instruction ids are valid. */
