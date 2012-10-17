@@ -138,4 +138,12 @@ class TestUniqueTable {
     }
   }
 
+  @Test
+  def existsQuantifierWorks {
+    new TestElements {
+      assert(truthTableCheck(table.exists(List(1), table.or(v1, v2)), Array(true, true, true, true), table))
+      assert(truthTableCheck(table.exists(List(2), table.and(v1, v2)), Array(false, false, true, true), table))
+    }
+  }
+
 }

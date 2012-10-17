@@ -29,15 +29,6 @@ class UniqueTable extends Logging {
   //Use mutable data structures internally, for performance reasons
   import scala.collection.mutable._
 
-  /** The symbol used as an AND sign in the memo cache. */
-  val AND_SIGN = "∧"
-
-  /** The symbol used as an OR sign in the memo cache. */
-  val OR_SIGN = "∨"
-
-  /** The symbol used as an XOR sign in the memo cache. */
-  val XOR_SIGN = "⊕"
-
   /** Current number of managed variables. */
   private[this] var numOfVariables = 0
 
@@ -172,7 +163,7 @@ class UniqueTable extends Logging {
    * @param g the instruction id of the second function
    * @return the instruction id of the function "f∧g"
    */
-  def and(f: Int, g: Int): Int = compose(AND_SIGN, f, g, commutative = true) {
+  def and(f: Int, g: Int): Int = compose("∧", f, g, commutative = true) {
     (f1, f2) =>
       {
         if (f1 == f2 || f2 == 1)
@@ -191,7 +182,7 @@ class UniqueTable extends Logging {
    * @param g the instruction id of the second function
    * @return the instruction id of the function "f∨g"
    */
-  def or(f: Int, g: Int): Int = compose(OR_SIGN, f, g, commutative = true) {
+  def or(f: Int, g: Int): Int = compose("∨", f, g, commutative = true) {
     (f1, f2) =>
       {
         if (f1 == f2 || f2 == 0)
@@ -210,7 +201,7 @@ class UniqueTable extends Logging {
    * @param g the instruction id of the second function
    * @return the instruction id of the function "f⊕g"
    */
-  def xor(f: Int, g: Int): Int = compose(XOR_SIGN, f, g, commutative = true) {
+  def xor(f: Int, g: Int): Int = compose("⊕", f, g, commutative = true) {
     (f1, f2) =>
       {
         if (f1 == 0)
@@ -279,18 +270,30 @@ class UniqueTable extends Logging {
   def exists(varIdxs: List[Int], f: Int): Int = exists(f, varIdxs.foldLeft(1)((g, varIdx) => and(g, unique(varIdx, 0, 1))))
 
   /**
-   *
+   * Internal implementation of exists quantifier, for which it is ensured that function g is indeed a conjunction of positive literals.
+   * @param f the function to be quantified
+   * @param g the conjunction of positive literals, corresponding to the variables over which to quantify
+   * @return the instruction id of the resulting formula
    */
-  def exists(f: Int, g: Int): Int = f match {
+  private[this] def exists(f: Int, g: Int): Int = f match {
     case 0 => 0
     case 1 => 1
-    case _ => solutionCache.getOrElseUpdate(f + AND_SIGN + g,
-      {
-        val (minVarIdx, fInstr, gInstr) = meld(f: Int, g: Int)
-        val rLow = and(fInstr._1, gInstr._1)
-        val rHigh = and(fInstr._2, gInstr._2)
-        42
-      })
+    case _ => {
+      val (minVarIdx, fInstr, gInstr) = meld(f: Int, g: Int)
+      if (minVarIdx != variables(f)) {
+        exists(f, gInstr._2)
+      } else {
+        solutionCache.getOrElseUpdate(f + "E" + g, {
+          val rLow = exists(fInstr._1, gInstr._2)
+          val rHigh = exists(fInstr._2, gInstr._2)
+          if (minVarIdx != variables(g)) { //Happens if either f or g do not rely on any variable (i.e. varIdx == 0)
+            unique(minVarIdx, rLow, rHigh)
+          } else {
+            or(rLow, rHigh)
+          }
+        })
+      }
+    }
   }
 
   /**
