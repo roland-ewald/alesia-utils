@@ -159,6 +159,7 @@ class TestUniqueTable {
     new TestElements {
       assert(table.variablesOf(instrIdV1and) == List(1, 2))
       assert(table.variablesOf(instrIdV2or) == List(2))
+      assert(table.variablesOf(instrIdV1and, instrIdV1or) == List(1, 2))
     }
   }
 

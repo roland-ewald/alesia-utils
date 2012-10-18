@@ -451,8 +451,14 @@ class UniqueTable extends Logging {
     }
   }
 
-  def variablesOf(f: Int): List[Int] = varsOf(f).toSet.toList.sorted
+  /**
+   * Retrieve variables references in one or more functions.
+   * @param fs set of functions
+   * @return the list of all variable indices referenced in at least one of the given functions, sorted in ascending order
+   */
+  def variablesOf(fs: Int*): List[Int] = fs.flatMap(varsOf).toSet.toList.sorted
 
+  /** Recursively constructs list of all referenced variable indices. */
   def varsOf(f: Int): List[Int] = f match {
     case 0 => List()
     case 1 => List()
