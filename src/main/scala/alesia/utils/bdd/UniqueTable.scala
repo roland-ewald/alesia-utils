@@ -303,14 +303,8 @@ class UniqueTable extends Logging {
    * @param f the function to be quantified
    * @return instruction id of the function A x_1, ..., x_n : f
    */
-  def forall(varIdxs: List[Int], f: Int): Int = f match {
-    case 0 => 0
-    case 1 => 1
-    case _ => {
-      //TODO
-      42
-    }
-  }
+  def forall(varIdxs: List[Int], f: Int): Int = not(exists(varIdxs, not(f)))
+  //TODO: better use a direct implementation, as for exists?
 
   // Operations on sets
 
