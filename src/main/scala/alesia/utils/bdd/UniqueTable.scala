@@ -451,6 +451,14 @@ class UniqueTable extends Logging {
     }
   }
 
+  def variablesOf(f: Int): List[Int] = varsOf(f).toSet.toList.sorted
+
+  def varsOf(f: Int): List[Int] = f match {
+    case 0 => List()
+    case 1 => List()
+    case n => variables(f) :: varsOf(lowInstr(f)) ::: varsOf(highInstr(f))
+  }
+
   //TODO: Add methods for re-ordering?
 }
 
