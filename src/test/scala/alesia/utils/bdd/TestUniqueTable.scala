@@ -110,6 +110,13 @@ class TestUniqueTable {
     }
   }
 
+    @Test
+  def simpleEquivalenceSynthesis {
+    new TestElements {
+      assert(truthTableCheck(table.iff(v1, v2), Array(true, false, false, true), table))
+    }
+  }   
+
   @Test
   def containsWorks {
     new TestElements {

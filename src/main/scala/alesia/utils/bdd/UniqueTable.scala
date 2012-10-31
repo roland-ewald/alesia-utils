@@ -222,12 +222,20 @@ class UniqueTable extends Logging {
   def not(f: Int): Int = xor(1, f)
 
   /**
-   * Defines an implication f => g. This is rewritten to "(¬f)∨g".
+   * Defines an implication f => g. This is rewritten to "(¬f¬)∨g".
    * @param f the condition
    * @param g the implication
    * @return the instruction id of the function "(¬f)∨g"
    */
   def implies(f: Int, g: Int) = or(not(f), g)
+
+  /**
+   * Defines an equivalence f <=> g. This is rewritten to "(f∧g)∨((¬f)∧(¬g))".
+   * @param f the first function
+   * @param g the second function
+   * @return the instruction id of the function f <=> g
+   */
+  def iff(f: Int, g: Int) = or(and(f, g), and(not(f), not(g)))
 
   /**
    * Naive implementation of variable substitution. Can only be used for a constant increment/decrement
