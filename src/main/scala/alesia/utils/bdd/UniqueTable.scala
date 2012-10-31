@@ -245,8 +245,8 @@ class UniqueTable extends Logging {
    * @return instruction id of f [varIdx/varIdx']
    */
   def substitute(f: Int, sub: scala.collection.Map[Int, Int]): Int = {
-    //TODO: Generalize this; it currently only works for substitutions with a constant varidx-increment!
-    require(sub.nonEmpty && sub.map(sub => (sub._1 - sub._2)).toSet.size == 1)
+    require(sub.nonEmpty && sub.map(sub => (sub._1 - sub._2)).toSet.size == 1, 
+        "This operation currently only works for substitutions with a constant varidx-increment.")
     substituteSimple(f, sub)
   }
 
