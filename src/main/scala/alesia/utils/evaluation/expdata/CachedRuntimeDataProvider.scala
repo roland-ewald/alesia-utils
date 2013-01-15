@@ -51,19 +51,25 @@ class CachedRuntimeDataProvider(fileName: String, algos: Iterable[_ <: Simulator
 
   def parameterValueNumbers: Array[Int] = algorithmParameters.map(_.size)
 
-  def algoIDForParamNums(paramNumbers: Int*) = {
+  def algoIDForParamNums(paramNumbers: Array[Int]): AlgoID = {
     require(paramNumbers.size == algorithmParameters.size, "Each parameter must be given")
     val params = (for (pn <- paramNumbers.zipWithIndex) yield algorithmParameters(pn._2)(pn._1)).toList
     algoByParams(params)
   }
 
+  def algoIDForParamNums(paramNumbers: Int*): AlgoID = algoIDForParamNums(paramNumbers.toArray)
+
   override def algorithmIDs = algorithms.keySet
 
   override def get(a: AlgoID): Double = aggregate(data(a))
 
-  def get(paramNumbers: Int*): Double = get(algoIDForParamNums(paramNumbers: _*))
+  def get(paramNumbers: Array[Int]): Double = get(algoIDForParamNums(paramNumbers: _*))
+
+  def get(paramNumbers: Int*): Double = get(paramNumbers.toArray)
 
   override def getRaw(a: AlgoID): List[Double] = data(a)
 
-  def getRaw(paramNumbers: Int*): List[Double] = getRaw(algoIDForParamNums(paramNumbers: _*))
+  def getRaw(paramNumbers: Array[Int]): List[Double] = getRaw(algoIDForParamNums(paramNumbers: _*))
+
+  def getRaw(paramNumbers: Int*): List[Double] = getRaw(paramNumbers.toArray)
 }
