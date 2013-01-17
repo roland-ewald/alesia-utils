@@ -18,6 +18,7 @@ package alesia.utils.evaluation.expdata
 import sessl.Simulator
 import scala.io.Source
 import sessl.util.CreatableFromVariables
+import sessl.util.ScalaToJava
 
 class CachedRuntimeDataProvider(fileName: String, algos: Iterable[_ <: Simulator with CreatableFromVariables[_]],
   aggregate: List[Double] => Double = (xs => xs.sum / xs.size)) extends RuntimeDataProvider {
@@ -63,13 +64,18 @@ class CachedRuntimeDataProvider(fileName: String, algos: Iterable[_ <: Simulator
 
   override def get(a: AlgoID): Double = aggregate(data(a))
 
-  def get(paramNumbers: Array[Int]): Double = get(algoIDForParamNums(paramNumbers: _*))
-
   def get(paramNumbers: Int*): Double = get(paramNumbers.toArray)
 
   override def getRaw(a: AlgoID): List[Double] = data(a)
 
-  def getRaw(paramNumbers: Array[Int]): List[Double] = getRaw(algoIDForParamNums(paramNumbers: _*))
+  def getRaw(paramNumbers: Int*): List[Double] = getRaw(algoIDForParamNums(paramNumbers: _*))
 
-  def getRaw(paramNumbers: Int*): List[Double] = getRaw(paramNumbers.toArray)
+  //To facilitate access via Java:
+
+  def get(paramNumbers: Array[Int]): java.lang.Double = get(algoIDForParamNums(paramNumbers: _*))
+
+  def getRaw(paramNumbers: Array[Int]): java.util.List[java.lang.Double] = ScalaToJava.toDoubleList(getRaw(algoIDForParamNums(paramNumbers: _*)))
+
+  lazy val algorithmParametersJava: Array[Array[java.lang.Double]] =
+    algorithmParameters.map(ScalaToJava.toDoubleArray(_))
 }
