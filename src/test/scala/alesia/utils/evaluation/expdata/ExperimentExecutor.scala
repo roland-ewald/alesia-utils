@@ -7,7 +7,6 @@ import sessl.Simulator
 import alesia.utils.evaluation.SimulationProblemPool
 import alesia.utils.evaluation.ExperimentTestPool
 
-
 /**
  * Interface to hide execution details.
  *
@@ -31,13 +30,17 @@ class CachedExperimentExecutor(val fileNames: String*) extends ExperimentExecuto
   //merge per-team data
   val mergedPerformanceData = (for (probTeamTuple <- perfDatas.head.keySet) yield {
     (probTeamTuple, (for (data <- perfDatas) yield data(probTeamTuple).toList).flatten.toIndexedSeq)
-  }).toMap
+  }).map(x=> (x._1.toString,x._2)).toMap
 
   override def getResults(problems: List[(String, Double, Map[String, Any])], teams: List[Simulator]): List[Double] = {
     val executableExperiments = problemPool.problemsAndDefinitions(problems, teams)
+    
     executableExperiments.map { setup =>
-      val problemDef = setup._1.toString
-      pickRandomly(mergedPerformanceData((problemDef, setup._2.simulator)))
+      {
+        val problemDef = setup._1.toString
+        val perfData = mergedPerformanceData.get((problemDef, setup._2.simulator).toString)
+        if (!perfData.isDefined) { println("NO KEY: " + (problemDef, setup._2.simulator)); 0.0 } else pickRandomly(perfData.get)
+      }
     }
   }
 
