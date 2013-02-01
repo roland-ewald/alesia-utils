@@ -38,8 +38,7 @@ class CachedExperimentExecutor(val fileNames: String*) extends ExperimentExecuto
     executableExperiments.map { setup =>
       {
         val problemDef = setup._1.toString
-        val perfData = mergedPerformanceData.get((problemDef, setup._2.simulator).toString)
-        if (!perfData.isDefined) { println("NO KEY: " + (problemDef, setup._2.simulator)); 0.0 } else pickRandomly(perfData.get)
+        pickRandomly(mergedPerformanceData((problemDef, setup._2.simulator).toString))
       }
     }
   }

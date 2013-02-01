@@ -1,4 +1,4 @@
-package alesia.learning.trueskill
+package alesia.componentrating.james
 import sessl._NextReactionMethod
 import sessl.james.BasicJamesIIEventQueue
 import sessl.james.BasicJamesIISimulator

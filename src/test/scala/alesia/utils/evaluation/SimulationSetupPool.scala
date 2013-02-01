@@ -44,14 +44,14 @@ object SimulationSetupPool {
     SortedList(),
     BucketQueue(),
     Heap(),
-    //Not yet released for JAMES II:
+    LinkedList() //Not yet released for JAMES II:
     //    CalendarQueue(),
     //    CalendarReQueue(),
     //    DynamicCalendarQueue(),
     //    MList(),
     //    MedianPointer(),
-    //    TwoList(),
-    LinkedList()))
+    //    TwoList()
+    ))
 
   val srSimulators = combinePlayersToTeams(List(
     NextReactionMethod() /*, Not yet released for JAMES II:
