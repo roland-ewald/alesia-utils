@@ -1,4 +1,4 @@
-package alesia.utils.results
+package alesia.utils.evaluation.expdata
 
 import java.io.File
 import alesia.componentrating.misc.Serializer
@@ -8,6 +8,7 @@ import scala.collection.mutable.ListBuffer
 import alesia.componentrating.activeRanking.Round
 import alesia.componentrating.activeRanking.misc.HammingDistance
 import scala.util.control.Breaks._
+import alesia.componentrating.activeRanking.misc.HammingDistance
 import alesia.componentrating.activeRanking.misc.HammingDistance
 
 /**
