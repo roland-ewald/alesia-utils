@@ -1,0 +1,41 @@
+/* lotka volterrs model
+wolves, sheep and grass*/
+package examples.stopi.lotka;
+
+Wolf(catch):=
+  
+  { !catch[].Wolf(catch)*2
+  + ~die[50.0]
+  }
+
+Sheep(catch, feed):=  
+
+  { ?catch[] 
+  + !feed[].Sheep(catch, feed)*2
+  }
+
+Grass(feed):=	
+
+  { ?feed[] 
+  }
+
+Willow(feed):=  
+
+  {~grow[1000.0].{ Willow(feed)
+                 | Grass(feed)
+                 }
+  }
+
+World():=
+
+  catch@0.7;
+  feed@1.5;
+			
+  {Wolf(catch)*5
+  |Sheep(catch, feed)*50
+  |Grass(feed)*200
+  |Willow(feed)
+  }
+                            
+                            
+

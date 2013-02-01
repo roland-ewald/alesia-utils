@@ -1,0 +1,19 @@
+/* translation from the examples of SPiM 
+http://research.microsoft.com/en-us/projects/spim/examples.pdf */
+
+package examples.stopi.nacl;
+
+Na(i,d)		:={!i[].NaPlus(i,d)}
+
+NaPlus(i,d)	:={?d[].Na(i,d)}
+
+Cl(i,d)		:={?i[].ClMinus(i,d)}
+
+ClMinus(i,d)	:={!d[].Cl(i,d)}
+
+Solution()	:= i@100.0;
+			d@10.0;
+
+			{Na(i,d)*100
+			|Cl(i,d)*100
+			}

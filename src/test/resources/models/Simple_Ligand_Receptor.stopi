@@ -1,0 +1,23 @@
+/* ligands bind and unbind to receptors */
+package examples.stopi.receptor;
+
+R_free(bind):= 
+  free@5.0;
+
+  { !bind[free].R_bound(bind, free) }
+
+R_bound(bind, free):= 
+  { !free.R_free(bind) }
+
+L_free(bind):= 
+  { ?bind[free].L_bound(bind, free) }
+
+L_bound(bind, free):= 
+  { ?free.L_free(bind) }
+
+System():=
+  bind@1.0;
+
+  { R_free(bind)*10 
+  | L_free(bind)*50
+  }

@@ -1,0 +1,28 @@
+/* translation from the examples of SPiM 
+http://research.microsoft.com/en-us/projects/spim/examples.pdf */
+package examples.stopi.mgcl2;
+
+Mg(i1, i2, d1, d2)      :={!i1[].Mgplus(i1, i2, d1, d2)}
+
+
+Mgplus(i1, i2, d1, d2)  :={!i2[].Mg2plus(i1, i2, d1, d2)
+                          +?d1[].Mg(i1, i2, d1, d2)}
+                        
+Mg2plus(i1, i2, d1, d2) :={?d2[].Mgplus(i1, i2, d1, d2)}
+
+Cl(i1, i2, d1, d2)	:={?i1[].Clminus(i1, i2, d1, d2)
+                          +?i2[].Clminus(i1, i2, d1, d2)} 
+                          
+Clminus(i1, i2, d1, d2) :={!d1[].Cl(i1, i2, d1, d2)
+                          +!d2[].Cl(i1, i2, d1, d2)} 
+                          
+Solution()		:= i1@10.0;
+                           i2@100.0;
+                           d1@50.0;
+                           d2@5.0;
+                           
+                           {Mg(i1, i2, d1, d2)*100
+                           |Cl(i1, i2, d1, d2)*100
+                           }
+                            
+                            

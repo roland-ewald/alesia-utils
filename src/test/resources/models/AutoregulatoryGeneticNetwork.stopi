@@ -1,0 +1,21 @@
+package examples.stopi.autoregulatory;
+/* reference: http://www.amazon.de/Stochastic-Modelling-Systems-Mathematical-Computational/dp/1584885408; */
+
+Gene(repressionBinding)    := { !repressionBinding 
+                              + ~transcription[0.01].{Gene(repressionBinding) | RNA()} }
+               
+P2(repressionBinding)      := { ?repressionBinding.P2_Gene(repressionBinding) 
+                              + ~dissociation[1.0].TwoP(repressionBinding) }
+
+P2_Gene(repressionBinding) := { ~reverseRepressionBinding[10.0].{Gene(repressionBinding)|P2(repressionBinding)} }
+             
+RNA()                      := { ~translation[10.0].{RNA() | P()}
+                              + ~rnaDegradation[0.1] }
+
+TwoP(repressionBinding)    := { ~dimerisation[1.0].P2(repressionBinding) }
+             
+P()                        := { ~proteinDegradation[0.01] }
+
+ProkaryoticAutoRegulation() := repressionBinding@1.0;
+                               { Gene(repressionBinding)*10 }
+

@@ -56,8 +56,9 @@ object SimpleTestPool extends SimulationProblemPool {
     ("file-srs:///./models/SRSTest.srs", 10))
   addSimpleProblems("stopi",
     ("file-stopi:///./models/NaCl.stopi", .1))
-  add("pdevs",
-    ("java://examples.pdevs.forestfire2.ForestFire", Double.MaxValue, Map("vis_ascii" -> false)))
+  //TODO: Not available in official release:
+  //  add("pdevs",
+  //    ("java://examples.pdevs.forestfire2.ForestFire", Double.MaxValue, Map("vis_ascii" -> false)))
 }
 
 /** There are 20 simulation problems, 5 each for StoPi, SR, SRS, and PDEVS. */

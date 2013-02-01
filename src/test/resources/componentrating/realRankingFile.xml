@@ -1,0 +1,46 @@
+<scala.collection.immutable._-colon_-colon serialization="custom">
+  <unserializable-parents/>
+  <scala.collection.immutable._-colon_-colon>
+    <scala.Tuple2>
+      <__1 class="string">eventqueues.mlist.MListFactory</__1>
+      <__2 class="int">1</__2>
+    </scala.Tuple2>
+    <scala.Tuple2>
+      <__1 class="string">org.jamesii.core.util.eventset.LinkedListEventQueueFactory</__1>
+      <__2 class="int">2</__2>
+    </scala.Tuple2>
+    <scala.Tuple2>
+      <__1 class="string">eventqueues.twolist.TwoListFactory</__1>
+      <__2 class="int">3</__2>
+    </scala.Tuple2>
+    <scala.Tuple2>
+      <__1 class="string">eventqueues.calendarqueue.CalendarQueueFactory</__1>
+      <__2 class="int">4</__2>
+    </scala.Tuple2>
+    <scala.Tuple2>
+      <__1 class="string">org.jamesii.core.util.eventset.BucketsThresholdEventQueueFactory</__1>
+      <__2 class="int">5</__2>
+    </scala.Tuple2>
+    <scala.Tuple2>
+      <__1 class="string">eventqueues.medianpointer.MedianPointerLinkedListEventQueueFactory</__1>
+      <__2 class="int">6</__2>
+    </scala.Tuple2>
+    <scala.Tuple2>
+      <__1 class="string">eventqueues.calendarqueue.CalendarReQueueFactory</__1>
+      <__2 class="int">7</__2>
+    </scala.Tuple2>
+    <scala.Tuple2>
+      <__1 class="string">org.jamesii.core.util.eventset.HeapEventQueueFactory</__1>
+      <__2 class="int">8</__2>
+    </scala.Tuple2>
+    <scala.Tuple2>
+      <__1 class="string">org.jamesii.core.util.eventset.SimpleEventQueueFactory</__1>
+      <__2 class="int">9</__2>
+    </scala.Tuple2>
+    <scala.Tuple2>
+      <__1 class="string">eventqueues.dynamiccalendarqueue.DynamicCalendarQueueFactory</__1>
+      <__2 class="int">10</__2>
+    </scala.Tuple2>
+    <scala.collection.immutable.ListSerializeEnd_-/>
+  </scala.collection.immutable._-colon_-colon>
+</scala.collection.immutable._-colon_-colon>
