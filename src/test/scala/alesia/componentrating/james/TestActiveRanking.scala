@@ -48,10 +48,10 @@ class TestActiveRanking extends FunSpec with Logging {
 
     it("runs smoothly and saves results to file") {
       startRun(rng, dflt, advOpt.cloneAndSet(setPPBalancing = true), "NewActiveRankingResults_PartialPlay.xml")
-      startRun(rng, dflt, advOpt.cloneAndSet(setVPBalancing = true), "NewActiveRankingResults_VirtualPlayers.xml")
-      test()
+      startRun(rng, dflt, advOpt.cloneAndSet(setVPBalancing = true), "NewActiveRankingResults_VirtualPlayers.xml")      
     }
-
+    
+    test()
   }
 
   def startRun(rng: Random, dflt: TrueSkillDefaultValues, advOpt: AdvancedOptions, targetFile: String) {
