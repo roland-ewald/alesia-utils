@@ -1,13 +1,11 @@
 package alesia.componentrating.james
 
 import scala.util.Random
-
 import org.junit.runner.RunWith
 import org.junit.runner.RunWith
 import org.scalatest.FunSpec
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.junit.JUnitRunner
-
 import alesia.componentrating.activeRanking.ActiveRanking
 import alesia.componentrating.activeRanking.MaxRoundStopCondition
 import alesia.componentrating.activeRanking.Round
@@ -21,7 +19,7 @@ import alesia.componentrating.misc.Serializer
 import alesia.componentrating.misc.TrueSkillDefaultValues
 import junit.framework.Assert._
 import sessl.util.Logging
-
+import java.io.File
 
 /**
  * Quick test showing how to use active ranking.
@@ -40,17 +38,23 @@ import sessl.util.Logging
 @RunWith(classOf[JUnitRunner])
 class TestActiveRanking extends FunSpec with Logging {
 
+  val dflt = new TrueSkillDefaultValues
+  val advOpt = new AdvancedOptions // default TrueSkill options, like team size balancing
+  val seed: java.lang.Long = 2
+  val rng = new Random(seed)
+  val partialPlayRanking = "NewActiveRankingResults_PartialPlay.xml"
+  val virtualPlayersRanking = "NewActiveRankingResults_VirtualPlayers.xml"
+
+  startRun(rng, dflt, advOpt.cloneAndSet(setPPBalancing = true), partialPlayRanking)
+  startRun(rng, dflt, advOpt.cloneAndSet(setVPBalancing = true), virtualPlayersRanking)
+
   describe("Active Ranking Test") {
-    val dflt = new TrueSkillDefaultValues
-    val advOpt = new AdvancedOptions // default TrueSkill options, like team size balancing
-    val seed: java.lang.Long = 2
-    val rng = new Random(seed)
 
     it("runs smoothly and saves results to file") {
-      startRun(rng, dflt, advOpt.cloneAndSet(setPPBalancing = true), "NewActiveRankingResults_PartialPlay.xml")
-      startRun(rng, dflt, advOpt.cloneAndSet(setVPBalancing = true), "NewActiveRankingResults_VirtualPlayers.xml")      
+      assert(new File(partialPlayRanking).exists())
+      assert(new File(virtualPlayersRanking).exists())
     }
-    
+
     test()
   }
 
@@ -60,7 +64,6 @@ class TestActiveRanking extends FunSpec with Logging {
     val stopCondition = new MaxRoundStopCondition(stopRound = 10000, maxReplications = 10)
     val logger = new TSFileLogger(targetFile, "./componentrating/realRankingFile.xml", List(new HammingDistance, new NumberOfInversionsDistance))
     val ar = new ActiveRanking(dflt, advOpt, rng, stopCondition, comparator, logger)
-
     ar.execute
   }
 
