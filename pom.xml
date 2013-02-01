@@ -124,6 +124,8 @@
 				<configuration>
 					<forkMode>always</forkMode>
 					<useFile>false</useFile>
+					<useManifestOnlyJar>false</useManifestOnlyJar>
+					<failIfNoTests>false</failIfNoTests>
 					<forkedProcessTimeoutInSeconds>600</forkedProcessTimeoutInSeconds>
 					<workingDirectory>${project.build.testOutputDirectory}</workingDirectory>
 					<runOrder>random</runOrder>
