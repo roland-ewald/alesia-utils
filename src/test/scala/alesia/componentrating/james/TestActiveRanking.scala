@@ -41,7 +41,7 @@ class TestActiveRanking extends FunSpec with Logging {
   val dflt = new TrueSkillDefaultValues
   val advOpt = new AdvancedOptions // default TrueSkill options, like team size balancing
   val seed: java.lang.Long = 2
-  val rng = new Random(seed)
+  val rng = new Random
   val partialPlayRanking = "NewActiveRankingResults_PartialPlay.xml"
   val virtualPlayersRanking = "NewActiveRankingResults_VirtualPlayers.xml"
 
@@ -61,7 +61,7 @@ class TestActiveRanking extends FunSpec with Logging {
   def startRun(rng: Random, dflt: TrueSkillDefaultValues, advOpt: AdvancedOptions, targetFile: String) {
     val muSelector = new WeightedRandomMatchUpSelector(new PointsAndUncertaintyMatchQuality[sessl.Simulator]()(dflt, advOpt))
     val comparator = new JamesIIComparator(muSelector, 2)
-    val stopCondition = new MaxRoundStopCondition(stopRound = 10000, maxReplications = 10)
+    val stopCondition = new MaxRoundStopCondition(stopRound = 30000, maxReplications = 10)
     val logger = new TSFileLogger(targetFile, "./componentrating/realRankingFile.xml", List(new HammingDistance, new NumberOfInversionsDistance))
     val ar = new ActiveRanking(dflt, advOpt, rng, stopCondition, comparator, logger)
     ar.execute
