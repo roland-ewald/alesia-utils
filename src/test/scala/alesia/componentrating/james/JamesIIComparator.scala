@@ -4,7 +4,7 @@ import alesia.componentrating.activeRanking.misc.MatchUpSelector
 import alesia.componentrating.activeRanking.ActiveRanking
 import scala.collection.mutable.HashMap
 import alesia.componentrating.misc.Helper
-import alesia.componentrating.activeRanking.TSComparator
+import alesia.componentrating.activeRanking.RankingComparator
 import alesia.utils.evaluation.expdata.CachedExperimentExecutor
 import alesia.utils.evaluation.ExperimentTestPool
 import alesia.utils.evaluation.FullSimulationSetupPool
@@ -16,7 +16,7 @@ import alesia.utils.evaluation.FullSimulationSetupPool
  *
  */
 class JamesIIComparator(muSelector: MatchUpSelector[sessl.Simulator], teamsPerGame: Int, perfDataDirectory: String = "./componentrating/")
-  extends TSComparator() {
+  extends RankingComparator() {
 
   private[this] var aR: ActiveRanking = null
   def register(aR: ActiveRanking) = this.aR = aR
@@ -44,7 +44,7 @@ class JamesIIComparator(muSelector: MatchUpSelector[sessl.Simulator], teamsPerGa
     val domain = Helper.chooseRand(biasedDomains, aR.rng)
     val problem = Helper.chooseRand(problemPool.byDomain(domain), aR.rng)
 
-    muSelector.matchQuality.init(setupPool.byDomain(domain), setupPool.playersPerTeam.toSeq.map(tuple => (tuple._1, tuple._2.toList)).toMap, aR.tsrs)
+    muSelector.matchQuality.init(setupPool.byDomain(domain), setupPool.playersPerTeam.toSeq.map(tuple => (tuple._1, tuple._2.toList)).toMap, aR.crs)
     muSelector.init(setupPool.byDomain(domain), teamsPerGame, aR.rng)
     val teams = muSelector.getMatchUp
     // Log JAMESII experiment results:

@@ -9,7 +9,7 @@ import org.scalatest.junit.JUnitRunner
 import alesia.componentrating.activeRanking.ActiveRanking
 import alesia.componentrating.activeRanking.MaxRoundStopCondition
 import alesia.componentrating.activeRanking.Round
-import alesia.componentrating.activeRanking.TSFileLogger
+import alesia.componentrating.activeRanking.FileRatingLogger
 import alesia.componentrating.activeRanking.misc.HammingDistance
 import alesia.componentrating.activeRanking.misc.NumberOfInversionsDistance
 import alesia.componentrating.activeRanking.misc.PointsAndUncertaintyMatchQuality
@@ -20,6 +20,7 @@ import alesia.componentrating.misc.TrueSkillDefaultValues
 import junit.framework.Assert._
 import sessl.util.Logging
 import java.io.File
+import alesia.componentrating.TrueSkillRatingSystem
 
 /**
  * Quick test showing how to use active ranking.
@@ -62,8 +63,8 @@ class TestActiveRanking extends FunSpec with Logging {
     val muSelector = new WeightedRandomMatchUpSelector(new PointsAndUncertaintyMatchQuality[sessl.Simulator]()(dflt, advOpt))
     val comparator = new JamesIIComparator(muSelector, 2)
     val stopCondition = new MaxRoundStopCondition(stopRound = 30000, maxReplications = 10)
-    val logger = new TSFileLogger(targetFile, "./componentrating/realRankingFile.xml", List(new HammingDistance, new NumberOfInversionsDistance))
-    val ar = new ActiveRanking(dflt, advOpt, rng, stopCondition, comparator, logger)
+    val logger = new FileRatingLogger(targetFile, "./componentrating/realRankingFile.xml", List(new HammingDistance, new NumberOfInversionsDistance))
+    val ar = new ActiveRanking(new TrueSkillRatingSystem, dflt, advOpt, rng, stopCondition, comparator, logger)
     ar.execute
   }
 
