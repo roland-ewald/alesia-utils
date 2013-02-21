@@ -22,10 +22,12 @@ import sessl.util.Logging
 /**
  * A very simple unique table implementation, roughly following the scheme described by D. E. Knuth in 'The Art of Computer Programming', vol. 4,
  *  fascicle 1, p. 92 et sqq.
+ * 
+ *  @param checkIDs flag to determine whether the range of instruction ids should be checked (switch on during development, switch off for performance)
  *
  *  @author Roland Ewald
  */
-class UniqueTable extends Logging {
+class UniqueTable(val checkIDs:Boolean = false) extends Logging {
 
   //Use mutable data structures internally, for performance reasons
   import scala.collection.mutable._
@@ -437,7 +439,7 @@ class UniqueTable extends Logging {
   private[this] def checkInstrIds(ids: Int*) = ids.forall(x => x >= 0 && x < instrIdCounter)
 
   /** Requires valid instruction ids and constructs corresponding error message. */
-  private[this] def requireInstrIds(ids: Int*) = require(checkInstrIds(ids: _*), "One instruction id in " + ids + " is not valid.")
+  private[this] def requireInstrIds(ids: Int*) = if(checkIDs) require(checkInstrIds(ids: _*), "One instruction id in " + ids + " is not valid.")
 
   /**
    * Creates a structural representation of a function/set, given as a list of lines to easier support recursive nesting.
@@ -480,7 +482,6 @@ class UniqueTable extends Logging {
         val currentId = childsToSearch.pop
         if (currentId > 1) {
           variableIds += variables(currentId)
-
           childsToSearch.push(lowInstr(currentId))
           childsToSearch.push(highInstr(currentId))
         }
