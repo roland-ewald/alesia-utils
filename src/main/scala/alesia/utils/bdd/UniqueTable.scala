@@ -15,8 +15,9 @@
  */
 package alesia.utils.bdd
 
-import sessl.util.Logging
 import scala.annotation.tailrec
+
+import sessl.util.Logging
 
 /**
  * A very simple unique table implementation, roughly following the scheme described by D. E. Knuth in 'The Art of Computer Programming', vol. 4,
@@ -245,8 +246,8 @@ class UniqueTable extends Logging {
    * @return instruction id of f [varIdx/varIdx']
    */
   def substitute(f: Int, sub: scala.collection.Map[Int, Int]): Int = {
-    require(sub.nonEmpty && sub.map(sub => (sub._1 - sub._2)).toSet.size == 1, 
-        "This operation currently only works for substitutions with a constant varidx-increment.")
+    require(sub.nonEmpty && sub.map(sub => (sub._1 - sub._2)).toSet.size == 1,
+      "This operation currently only works for substitutions with a constant varidx-increment.")
     substituteSimple(f, sub)
   }
 
@@ -464,16 +465,23 @@ class UniqueTable extends Logging {
    * @param fs set of functions
    * @return the list of all variable indices referenced in at least one of the given functions, sorted in ascending order
    */
-  def variablesOf(fs: Int*): scala.collection.Iterable[Int] = fs.flatMap(varsOf).distinct.sortWith(_<_)  
+  def variablesOf(fs: Int*): scala.collection.Iterable[Int] = fs.flatMap(varsOf).distinct.sortWith(_ < _)
 
-  /** Recursively constructs list of all referenced variable indices. */
-  def varsOf(f: Int): List[Int] = f match {
-    case 0 => List()
-    case 1 => List()
-    case n => variables(f) :: varsOf(lowInstr(f)) ::: varsOf(highInstr(f))
+  /** Constructs list of all referenced variable indices. */
+  def varsOf(f: Int): List[Int] = {
+    val variableIds = ListBuffer[Int]()
+    val childsToSearch = scala.collection.mutable.Stack[Int]()
+    childsToSearch.push(f)
+    while (!childsToSearch.isEmpty) {
+      val currentId = childsToSearch.pop
+      if (currentId > 1) {
+        variableIds += variables(currentId)
+        childsToSearch.push(lowInstr(currentId))
+        childsToSearch.push(highInstr(currentId))
+      }
+    }
+    variableIds.toList
   }
-
-  //TODO: Add methods for re-ordering?
 }
 
 /**
