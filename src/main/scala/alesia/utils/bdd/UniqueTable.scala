@@ -59,6 +59,9 @@ class UniqueTable extends Logging {
 
   /** The true instruction. Always second element in any array of branch instructions. */
   val trueInstrId = addNewInstruction(0, 1, 1)
+  
+  /** Cache for the results of <code>varOf(...)</code> calls.*/
+  val varsOfCache = scala.collection.mutable.HashMap[Int, List[Int]]()
 
   /**
    * Look up unique node in table. See Knuth's TAOCP (see above), sec. 7.1.4, algorithm U.
@@ -469,18 +472,21 @@ class UniqueTable extends Logging {
 
   /** Constructs list of all referenced variable indices. */
   def varsOf(f: Int): List[Int] = {
-    val variableIds = ListBuffer[Int]()
-    val childsToSearch = scala.collection.mutable.Stack[Int]()
-    childsToSearch.push(f)
-    while (!childsToSearch.isEmpty) {
-      val currentId = childsToSearch.pop
-      if (currentId > 1) {
-        variableIds += variables(currentId)
-        childsToSearch.push(lowInstr(currentId))
-        childsToSearch.push(highInstr(currentId))
+    varsOfCache.getOrElseUpdate(f, {
+      val variableIds = ListBuffer[Int]()
+      val childsToSearch = scala.collection.mutable.Stack[Int]()
+      childsToSearch.push(f)
+      while (!childsToSearch.isEmpty) {
+        val currentId = childsToSearch.pop
+        if (currentId > 1) {
+          variableIds += variables(currentId)
+
+          childsToSearch.push(lowInstr(currentId))
+          childsToSearch.push(highInstr(currentId))
+        }
       }
-    }
-    variableIds.toList
+      variableIds.toList
+    })
   }
 }
 
