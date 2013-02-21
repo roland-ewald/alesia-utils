@@ -464,7 +464,7 @@ class UniqueTable extends Logging {
    * @param fs set of functions
    * @return the list of all variable indices referenced in at least one of the given functions, sorted in ascending order
    */
-  def variablesOf(fs: Int*): List[Int] = fs.flatMap(varsOf).toSet.toList.sorted
+  def variablesOf(fs: Int*): scala.collection.Iterable[Int] = fs.flatMap(varsOf).distinct.sortWith(_<_)  
 
   /** Recursively constructs list of all referenced variable indices. */
   def varsOf(f: Int): List[Int] = f match {
