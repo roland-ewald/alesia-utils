@@ -63,7 +63,7 @@ class UniqueTable(val checkIDs:Boolean = false) extends Logging {
   val trueInstrId = addNewInstruction(0, 1, 1)
   
   /** Cache for the results of <code>varOf(...)</code> calls.*/
-  val varsOfCache = scala.collection.mutable.HashMap[Int, List[Int]]()
+  val varsOfCache = Map[Int, List[Int]]()
 
   /**
    * Look up unique node in table. See Knuth's TAOCP (see above), sec. 7.1.4, algorithm U.
@@ -367,7 +367,6 @@ class UniqueTable(val checkIDs:Boolean = false) extends Logging {
    * @return the instruction id of the function "f∘g"
    */
   private[this] def compose(operation: String, f: Int, g: Int, commutative: Boolean = false)(obviousSolution: (Int, Int) => Option[Int]): Int = {
-    requireInstrIds(f, g)
 
     //If operation is commutative, make this pair unique via ordering 
     val (id1, id2) = if (commutative && f > g) (g, f) else (f, g)
