@@ -39,10 +39,10 @@ class UniqueTable(val checkIDs:Boolean = false) extends Logging {
   private[this] var instrIdCounter = 0;
 
   /**
-   * The storage for all instructions. For each variable with index v, the map contains a map from ([v],p,q) to r, where r is
-   *  the id of the instruction.
+   * The storage for all instructions. An entry (v,p,q) represents a node with variable index v and (p,q) as low/high instruction id. 
+   * It is mapped to the unique id of the instruction.
    */
-  private[this] val instructions = Map[Int, Map[(Int, Int), Int]]()
+  private[this] val instructions = Map[(Int, Int, Int), Int]()
 
   /** Maps instruction IDs to their variables: r => v. Default values refer to false and true instruction. */
   private[this] val variables = Map[Int, Int]()
@@ -79,13 +79,11 @@ class UniqueTable(val checkIDs:Boolean = false) extends Logging {
 
     //Check whether there is a new variable to be considered
     if (numOfVariables < varIdx) {
-      for (vNew <- numOfVariables to varIdx)
-        ensureVarAvailable(vNew)
       numOfVariables = varIdx
     }
 
     //Find instruction 
-    val instruction = instructions(varIdx).get(lowId, highId)
+    val instruction = instructions.get(varIdx,lowId,highId)
     if (instruction.isDefined)
       instruction.get
     else
@@ -108,23 +106,12 @@ class UniqueTable(val checkIDs:Boolean = false) extends Logging {
    * @return the id of the new instruction
    */
   private[this] def addNewInstruction(varIdx: Int, lowInstrIdx: Int, highInstrIdx: Int): Int = {
-    ensureVarAvailable(varIdx)
-
     val id = createNewId()
     variables(id) = varIdx
     lowInstr(id) = lowInstrIdx
     highInstr(id) = highInstrIdx
-    instructions(varIdx)((lowInstrIdx, highInstrIdx)) = id
+    instructions((varIdx, lowInstrIdx, highInstrIdx)) = id
     id
-  }
-
-  /** Ensures the variable is available in the instruction cache. */
-  private[this] def ensureVarAvailable(varIdx: Int): Unit = {
-    val alreadyAvailable = instructions.contains(varIdx)
-    if (!alreadyAvailable) {
-      instructions(varIdx) = Map[(Int, Int), Int]()
-    }
-    alreadyAvailable
   }
 
   /**
