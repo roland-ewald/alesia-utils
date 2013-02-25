@@ -22,12 +22,12 @@ import sessl.util.Logging
 /**
  * A very simple unique table implementation, roughly following the scheme described by D. E. Knuth in 'The Art of Computer Programming', vol. 4,
  *  fascicle 1, p. 92 et sqq.
- * 
+ *
  *  @param checkIDs flag to determine whether the range of instruction ids should be checked (switch on during development, switch off for performance)
  *
  *  @author Roland Ewald
  */
-class UniqueTable(val checkIDs:Boolean = false) extends Logging {
+class UniqueTable(val checkIDs: Boolean = false) extends Logging {
 
   //Use mutable data structures internally, for performance reasons
   import scala.collection.mutable._
@@ -39,7 +39,7 @@ class UniqueTable(val checkIDs:Boolean = false) extends Logging {
   private[this] var instrIdCounter = 0;
 
   /**
-   * The storage for all instructions. An entry (v,p,q) represents a node with variable index v and (p,q) as low/high instruction id. 
+   * The storage for all instructions. An entry (v,p,q) represents a node with variable index v and (p,q) as low/high instruction id.
    * It is mapped to the unique id of the instruction.
    */
   private[this] val instructions = Map[(Int, Int, Int), Int]()
@@ -61,7 +61,7 @@ class UniqueTable(val checkIDs:Boolean = false) extends Logging {
 
   /** The true instruction. Always second element in any array of branch instructions. */
   val trueInstrId = addNewInstruction(0, 1, 1)
-  
+
   /** Cache for the results of <code>varOf(...)</code> calls.*/
   val varsOfCache = Map[Int, List[Int]]()
 
@@ -83,7 +83,7 @@ class UniqueTable(val checkIDs:Boolean = false) extends Logging {
     }
 
     //Find instruction 
-    val instruction = instructions.get(varIdx,lowId,highId)
+    val instruction = instructions.get(varIdx, lowId, highId)
     if (instruction.isDefined)
       instruction.get
     else
@@ -425,7 +425,7 @@ class UniqueTable(val checkIDs:Boolean = false) extends Logging {
   private[this] def checkInstrIds(ids: Int*) = ids.forall(x => x >= 0 && x < instrIdCounter)
 
   /** Requires valid instruction ids and constructs corresponding error message. */
-  private[this] def requireInstrIds(ids: Int*) = if(checkIDs) require(checkInstrIds(ids: _*), "One instruction id in " + ids + " is not valid.")
+  private[this] def requireInstrIds(ids: Int*) = if (checkIDs) require(checkInstrIds(ids: _*), "One instruction id in " + ids + " is not valid.")
 
   /**
    * Creates a structural representation of a function/set, given as a list of lines to easier support recursive nesting.
@@ -461,17 +461,25 @@ class UniqueTable(val checkIDs:Boolean = false) extends Logging {
   /** Constructs list of all referenced variable indices. */
   def varsOf(f: Int): List[Int] = {
     varsOfCache.getOrElseUpdate(f, {
+      var counter = 0
       val variableIds = ListBuffer[Int]()
+      val visited = scala.collection.mutable.Set[Int]()
       val childsToSearch = scala.collection.mutable.Stack[Int]()
       childsToSearch.push(f)
       while (!childsToSearch.isEmpty) {
         val currentId = childsToSearch.pop
-        if (currentId > 1) {
-          variableIds += variables(currentId)
-          childsToSearch.push(lowInstr(currentId))
-          childsToSearch.push(highInstr(currentId))
+        if (!visited(currentId)) {
+          visited += currentId
+          if (currentId > 1) {
+            variableIds += variables(currentId)
+            childsToSearch.push(lowInstr(currentId))
+            childsToSearch.push(highInstr(currentId))
+          }
+//          println("visited:" + currentId)
+          counter += 1
         }
       }
+      println("#ops: " + counter)
       variableIds.toList
     })
   }
