@@ -69,7 +69,7 @@ object SimulationSetupPool {
   val pdevsSimulators = combinePlayersToTeams(List(
     PDEVSFlatSequential()), "eventqueue")
 
-  def combinePlayersToTeams[A <: JamesIIAlgo[_ <: Factory] with CreatableFromVariables[_]](simulators: List[A],
+  def combinePlayersToTeams[A <: JamesIIAlgo[_] with CreatableFromVariables[_]](simulators: List[A],
     eqProperty: String, chooseString: Boolean = true) = {
     for (sim <- generatePlayerNames(simulators); eq <- eventQueues)
       yield (
@@ -78,7 +78,7 @@ object SimulationSetupPool {
       Set(sim._2, eq._2))
   }
 
-  def generatePlayerNames[U <: JamesIIAlgo[_ <: Factory]](algos: List[U]) =
+  def generatePlayerNames[U <: JamesIIAlgo[_]](algos: List[U]) =
     algos.map(a => (a, a.factory.getClass().getCanonicalName()))
 }
 
