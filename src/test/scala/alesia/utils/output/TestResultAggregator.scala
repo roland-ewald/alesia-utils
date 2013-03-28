@@ -17,10 +17,11 @@ package alesia.utils.output
 
 import org.junit.Test
 import org.junit.Assert._
+import sessl.util.ScalaToJava._
 import scala.collection.mutable.ListBuffer
 import org.jamesii.core.math.statistics.tests.wilcoxon.WilcoxonRankSumTest
 import java.io.File
-import sessl.util.ScalaToJava._
+
 import alesia.utils.results.ResultAggregator
 import alesia.utils.math.JensenShannonDivergence
 
@@ -58,7 +59,7 @@ import alesia.utils.math.JensenShannonDivergence
   @Test def executeSimpleAggregation() = {
     val aggregator = new TestResultAggregator() {
 
-      addTransposedAggregator("mean")(_.map(mean))
+      addTransposedAggregator("mean")(x => x.map(mean))
       addTransposedAggregator("stddev")(_.map(stddev))
       addTransposedAggregator("absmin")(_.map(absmin))
       addTransposedAggregator("absmax")(_.map(absmax))
@@ -68,7 +69,7 @@ import alesia.utils.math.JensenShannonDivergence
         (referenceData, data) =>
           {
             for (compareData <- referenceData zip data) yield {
-              new WilcoxonRankSumTest().executeTest(toIntegerList(compareData._1.toIterable), toIntegerList(compareData._2))
+              new WilcoxonRankSumTest().executeTest(toIntegerList(compareData._1), toIntegerList(compareData._2))
             }
           }
       }
@@ -144,21 +145,4 @@ import alesia.utils.math.JensenShannonDivergence
     aggregator.aggregate()
   }
 
-}
-
-/** Test application to real-world data. */
-class VassibAggregator extends ResultAggregator[Int]("./vassib_input", ".csv") {
-  override def parse(s: String): Int = java.lang.Integer.parseInt(s.trim)
-  override def pickReferenceDataFile(files: Seq[File]): Option[File] = {
-    for (f <- files)
-      if (f.getName().contains("NextReaction"))
-        return Some(f);
-    None
-  }
-  override def extractName(file: File) = {
-    var fName = file.getName()
-    if (fName.indexOf('_') > 0 && fName.indexOf('_') + 1 < fName.length())
-      fName = fName.substring(fName.lastIndexOf('_') + 1);
-    fName.substring(0, fName.lastIndexOf(".csv"))
-  }
 }

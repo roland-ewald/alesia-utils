@@ -26,10 +26,11 @@ import scala.collection.mutable.ArrayBuffer
 import sessl.util.ResultOperations
 import sessl.util.MiscUtils
 
-/** Some simple methods for output aggregation.
+/**
+ * Some simple methods for output aggregation.
  *  It is assumed that each file names contains the description of the data for a single setup.
  *  One setup can be picked to contain 'reference data', for comparing it with all other data sets.
- *  
+ *
  *  @param baseDirectory the basic working directory of the aggregator
  *  @param fileEnding the file ending of the data files that shall be aggregated
  *  @param targetDirectory the directory for aggregation output (relative to base directory)
@@ -44,6 +45,8 @@ abstract class ResultAggregator[X](val baseDirectory: String, val fileEnding: St
   val dataFiles = new File(baseDirectory).list
     .filter(f => { val i = f.lastIndexOf('.'); i > 0 && i + 1 < f.length() && f.substring(i + 1).equalsIgnoreCase(fileEnding) })
     .sorted.map(f => new File(baseDirectory + File.separator + f)).filter(f => f.isFile && f.length > 0)
+
+  require(dataFiles.length > 0, "No files could be matched")
 
   /** The path to the target directory. */
   val targetDirectoryPath = setupTargetDirectory()
@@ -87,7 +90,8 @@ abstract class ResultAggregator[X](val baseDirectory: String, val fileEnding: St
   /** Parses a string to the given type. */
   def parse(number: String): X
 
-  /** If comparison to reference results is necessary, this method returns the index of the file that contains it.
+  /**
+   * If comparison to reference results is necessary, this method returns the index of the file that contains it.
    *  @return the file containing the reference data
    */
   def pickReferenceDataFile(files: Seq[File]): Option[File] = None
@@ -130,7 +134,8 @@ abstract class ResultAggregator[X](val baseDirectory: String, val fileEnding: St
     } else None
   }
 
-  /** Reads data file.
+  /**
+   * Reads data file.
    *  @param dataFilee the data file
    *  @return lists of value sequences
    */
@@ -234,7 +239,8 @@ abstract class ResultAggregator[X](val baseDirectory: String, val fileEnding: St
   def min(d: Seq[_]) = ResultAggregation(d).min("")
 }
 
-/** Simple wrapper for ResultOperations. Is initialized with the data that shall be aggregated.
+/**
+ * Simple wrapper for ResultOperations. Is initialized with the data that shall be aggregated.
  *
  *  @see sessl.util.ResultOperations
  *
