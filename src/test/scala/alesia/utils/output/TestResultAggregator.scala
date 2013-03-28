@@ -21,11 +21,12 @@ import sessl.util.ScalaToJava._
 import scala.collection.mutable.ListBuffer
 import org.jamesii.core.math.statistics.tests.wilcoxon.WilcoxonRankSumTest
 import java.io.File
-
 import alesia.utils.results.ResultAggregator
 import alesia.utils.math.JensenShannonDivergence
+import alesia.utils.results.ResultAggregators
 
-/** Tests for the ResultAggregator.
+/**
+ * Tests for the ResultAggregator.
  *  @author Roland Ewald
  */
 @Test class TestResultAggregator {
@@ -57,27 +58,19 @@ import alesia.utils.math.JensenShannonDivergence
 
   /** Test some simple aggregation methods. */
   @Test def executeSimpleAggregation() = {
+
     val aggregator = new TestResultAggregator() {
 
-      addTransposedAggregator("mean")(x => x.map(mean))
+      addTransposedAggregator("mean")(_.map(mean))
       addTransposedAggregator("stddev")(_.map(stddev))
       addTransposedAggregator("absmin")(_.map(absmin))
       addTransposedAggregator("absmax")(_.map(absmax))
 
       //Wilcoxon-Ranksum p-value for every time point
-      addRefTransposedAggregator("wilcoxon_ranksum_pvalues") {
-        (referenceData, data) =>
-          {
-            for (compareData <- referenceData zip data) yield {
-              new WilcoxonRankSumTest().executeTest(toIntegerList(compareData._1), toIntegerList(compareData._2))
-            }
-          }
-      }
+      addRefTransposedAggregator("wilcoxon_ranksum_pvalues")(ResultAggregators.wilcoxon)
 
       //Jensen-Shannon divergence for every time point
-      addRefTransposedAggregator("jensen_shannon_div") {
-        (referenceData, data) => (referenceData zip data).map(t => JensenShannonDivergence(t._1, t._2))
-      }
+      addRefTransposedAggregator("jensen_shannon_div")(ResultAggregators.jsDivergence)
 
       //Some single metrics to characterize accuracy
       addRefTransposedAggregator("single_uncertainty_metrics") {
@@ -118,10 +111,6 @@ import alesia.utils.math.JensenShannonDivergence
             val minStdDev = min(allStdDevs)
             val nStdDevRMSE = stdDevRMSE / (maxStdDev - minStdDev)
 
-            //Jensen-Shannon divergence in last observed state
-            val wrPValEnd = new WilcoxonRankSumTest().executeTest(toIntegerList(referenceData.last), toIntegerList(data.last))
-            val jsDivEnd = JensenShannonDivergence(referenceData.last, data.last)
-
             //Absolute differences on simple aggregate means
             rv += scala.math.abs(refMeansMean - dataMeansMean)
             rv += scala.math.abs(refStdDevsMean - dataStdDevsMean)
@@ -131,16 +120,14 @@ import alesia.utils.math.JensenShannonDivergence
             rv += cvStdDevRMSE
             rv += nMeansRMSE
             rv += nStdDevRMSE
-            rv += wrPValEnd
-            rv += jsDivEnd
             rv.toList
           }
       }
 
       /** Controls trajectory length. */
-      override def filterData(data: Seq[Int], file: File) = { val rv = data.length != 501; if (rv) println("Filtered line from " + file.getName() + " - length is "+data.length); rv }
+      override def filterData(data: Seq[Int], file: File) = { val rv = data.length != 501; if (rv) println("Filtered line from " + file.getName() + " - length is " + data.length); rv }
     }
-    
+
     assertEquals(4, aggregator.dataFiles.length)
     aggregator.aggregate()
   }

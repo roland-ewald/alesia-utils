@@ -20,11 +20,11 @@ import scala.collection.mutable.ArraySeq
 import sessl.james.tools.CSVFileWriter
 import java.io.FileReader
 import java.io.BufferedReader
-
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.ArrayBuffer
 import sessl.util.ResultOperations
 import sessl.util.MiscUtils
+import org.jamesii.core.math.statistics.tests.wilcoxon.WilcoxonRankSumTest
 
 /**
  * Some simple methods for output aggregation.
