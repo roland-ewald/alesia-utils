@@ -463,25 +463,36 @@ class UniqueTable(val checkIDs: Boolean = false) extends Logging {
     varsOfCache.getOrElseUpdate(f, {
       var counter = 0
       val variableIds = ListBuffer[Int]()
-      val visited = scala.collection.mutable.Set[Int]()
+      val visited = scala.collection.mutable.ListBuffer[Int]()
+      val visitedInstr = scala.collection.mutable.ListBuffer[(Int, Int, Int, Int)]()
       val childsToSearch = scala.collection.mutable.Stack[Int]()
       childsToSearch.push(f)
       while (!childsToSearch.isEmpty) {
         val currentId = childsToSearch.pop
-        if (!visited(currentId)) {
-          visited += currentId
-          if (currentId > 1) {
-            variableIds += variables(currentId)
-            childsToSearch.push(lowInstr(currentId))
-            childsToSearch.push(highInstr(currentId))
-          }
-//          println("visited:" + currentId)
-          counter += 1
+        //        if (!visited(currentId)) {
+        visited += currentId
+        visitedInstr += ((currentId, variables(currentId), lowInstr(currentId), highInstr(currentId)))
+        if (currentId > 1) {
+          variableIds += variables(currentId)
+          val childs = List(lowInstr(currentId), highInstr(currentId))
+          childs.foreach(x => if (x > 1) childsToSearch.push(x))
         }
+        //          println("visited:" + currentId)
+        counter += 1
+        if (counter > 1000) {
+          val x = 123;
+        }
+
+        //        }
       }
       println("#ops: " + counter)
       variableIds.toList
     })
+  }
+
+  def toGraphVizDescription(f: Int): String = {
+    //TODO
+    throw new UnsupportedOperationException
   }
 }
 
