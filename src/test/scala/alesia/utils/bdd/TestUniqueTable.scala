@@ -19,6 +19,8 @@ import org.junit.Test
 import org.junit.Assert._
 import sessl.util.Logging
 import UniqueTable._
+import java.io.PrintWriter
+import java.io.File
 
 /**
  * Tests for the unique table implementation.
@@ -110,12 +112,12 @@ class TestUniqueTable {
     }
   }
 
-    @Test
+  @Test
   def simpleEquivalenceSynthesis {
     new TestElements {
       assert(truthTableCheck(table.iff(v1, v2), Array(true, false, false, true), table))
     }
-  }   
+  }
 
   @Test
   def containsWorks {
@@ -168,6 +170,19 @@ class TestUniqueTable {
       assert(table.variablesOf(instrIdV2or) == List(2))
       assert(table.variablesOf(instrIdV1and, instrIdV1or) == List(1, 2))
     }
+  }
+
+  @Test
+  def graphvizExport {
+    val testFileName = "test_graph.dot"
+    val testFile = new File(testFileName)
+    testFile.delete
+    new TestElements {
+      val writer = new PrintWriter(new File(testFileName))
+      writer.write(table.structureForGraphviz(instrIdV1and))
+      writer.close()
+    }
+    assertTrue(testFile.length() > 0)
   }
 
 }

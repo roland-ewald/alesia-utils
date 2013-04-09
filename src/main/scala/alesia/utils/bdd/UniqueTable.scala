@@ -16,8 +16,10 @@
 package alesia.utils.bdd
 
 import scala.annotation.tailrec
-
+import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.Map
 import sessl.util.Logging
+import java.io.PrintWriter
 
 /**
  * A very simple unique table implementation, roughly following the scheme described by D. E. Knuth in 'The Art of Computer Programming', vol. 4,
@@ -459,40 +461,72 @@ class UniqueTable(val checkIDs: Boolean = false) extends Logging {
   def variablesOf(fs: Int*): scala.collection.Iterable[Int] = fs.flatMap(varsOf).distinct.sortWith(_ < _)
 
   /** Constructs list of all referenced variable indices. */
-  def varsOf(f: Int): List[Int] = {
+  def varsOf(f: Int): List[Int] =
     varsOfCache.getOrElseUpdate(f, {
-      var counter = 0
-      val variableIds = ListBuffer[Int]()
-      val visited = scala.collection.mutable.ListBuffer[Int]()
-      val visitedInstr = scala.collection.mutable.ListBuffer[(Int, Int, Int, Int)]()
-      val childsToSearch = scala.collection.mutable.Stack[Int]()
-      childsToSearch.push(f)
-      while (!childsToSearch.isEmpty) {
-        val currentId = childsToSearch.pop
-        //        if (!visited(currentId)) {
-        visited += currentId
-        visitedInstr += ((currentId, variables(currentId), lowInstr(currentId), highInstr(currentId)))
-        if (currentId > 1) {
-          variableIds += variables(currentId)
-          val childs = List(lowInstr(currentId), highInstr(currentId))
-          childs.foreach(x => if (x > 1) childsToSearch.push(x))
-        }
-        //          println("visited:" + currentId)
-        counter += 1
-        if (counter > 1000) {
-          val x = 123;
-        }
-
-        //        }
+      visitInstructions(f) { inst =>
+        if (inst > 1) Some(variables(inst)) else None
       }
-      println("#ops: " + counter)
-      variableIds.toList
     })
+
+  /**
+   * Implements visitor pattern for a given function and an accumulator function.
+   *  @param f the function the instructions of which shall be visited (each only once, including true and false)
+   *  @param acc the accumulator function
+   *  @return list of accumulated results
+   */
+  private[this] def visitInstructions[X](f: Int)(acc: Int => Option[X]): List[X] = {
+    val rv = ListBuffer[X]()
+    val visited = scala.collection.mutable.Set[Int]()
+    val childsToSearch = scala.collection.mutable.Stack[Int]()
+    childsToSearch.push(f)
+    while (!childsToSearch.isEmpty) {
+      val currentId = childsToSearch.pop
+      if (!visited(currentId)) {
+        visited += currentId
+        acc(currentId).map(rv += _)
+        childsToSearch.push(lowInstr(currentId))
+        childsToSearch.push(highInstr(currentId))
+      }
+    }
+    rv.toList
   }
 
-  def toGraphVizDescription(f: Int): String = {
-    //TODO
-    throw new UnsupportedOperationException
+  /**
+   * Creates a Graphviz (http://www.graphviz.org) input string that represents a given function. Mostly useful for debugging purposes.
+   * @param  f the function to be displayed
+   * @return string containing the structure of the boolean function f in the dot format
+   */
+  def structureForGraphviz(f: Int, nodePrefix: String = "n"): String = {
+
+    /** Create node label (true and false are special cases). */
+    def createLabel(n: Int) = n match {
+      case 0 => "FALSE"
+      case 1 => "TRUE"
+      case _ => n + " (v " + variables(n) + ")"
+    }
+
+    /** Defines edge. */
+    def createEdge(from: Int, to: Int, low: Boolean) = nodePrefix + from + " -> " + nodePrefix + to +
+      "[label=\"" + (if (low) "low" else "high") + "\"]\n"
+
+    val visited = scala.collection.mutable.Set[Int](f)
+    /** Visit all instructions and remember them, generate edge definitions. */
+    val edges = visitInstructions(f) { inst =>
+      {
+        if (inst > 1) {
+          val (low, high) = (lowInstr(inst), highInstr(inst))
+          visited += (low, high)
+          Some(createEdge(inst, low, true) + createEdge(inst, high, false))
+        } else None
+      }
+    }
+
+    val rv = new StringBuffer("digraph n {\n")
+    for (n <- visited)
+      rv.append(nodePrefix + n + "[label=\"" + createLabel(n) + "\"];\n")
+    rv.append(edges.mkString)
+    rv.append("}")
+    rv.toString
   }
 }
 
