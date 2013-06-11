@@ -33,7 +33,7 @@ import org.junit.Test
   @Test def testJSDivergence() {
     val rng = new Random()
     def getSample(bound: Int = 100) = for (i <- 0 until sampleSize) yield rng.nextInt(bound)
-    def inRange(d: Double) = d >= 0. && d <= 1.
+    def inRange(d: Double) = d >= 0.0 && d <= 1.0
     for (i <- 0 until trialNumber) {
       val similarDiv = JensenShannonDivergence(getSample(), getSample())
       val unsimilarDiv = JensenShannonDivergence(getSample(), getSample(10))

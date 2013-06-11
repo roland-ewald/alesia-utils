@@ -53,7 +53,7 @@ object ConvertPValues extends App {
     }
     csvReader.close
   } catch {
-    case e => e.printStackTrace()
+    case e:Throwable => e.printStackTrace()
   }
 
 }
