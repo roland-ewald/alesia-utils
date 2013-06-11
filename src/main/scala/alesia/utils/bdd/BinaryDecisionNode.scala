@@ -18,6 +18,8 @@ package alesia.utils.bdd
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 
+import scala.language.implicitConversions
+
 /** Basic types to represent a binary decision diagrams (BDDs).
  *  Correspond to entities discussed in D. E. Knuth's "The Art of Computer Programming", vol. 4,
  *  fascicle 1 (sec. 7.1.4, p. 70 et sqq.).
